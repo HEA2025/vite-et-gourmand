@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Administration</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <p>
+        <a href="{{ path('app_admin_employe_nouveau') }}" class="btn btn-primary">
+            Créer un employé
+        </a>
+    </p>
+
+    <h2>Employés</h2>
+
+    {% if employes is empty %}
+        <p>Aucun employé.</p>
+    {% else %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for employe in employes %}
+                    <tr>
+                        <td>{{ employe.email }}</td>
+
+                        <td>
+                            {% if employe.actif %}
+                                Actif
+                            {% else %}
+                                Désactivé
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <form
+                                method="post"
+                                action="{{ path('app_admin_employe_statut', {id: employe.id}) }}"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="_token"
+                                    value="{{ csrf_token('statut_employe_' ~ employe.id) }}"
+                                >
+
+                                <button type="submit" class="btn btn-secondary">
+                                    {% if employe.actif %}
+                                        Désactiver
+                                    {% else %}
+                                        Réactiver
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

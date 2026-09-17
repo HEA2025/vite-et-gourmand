@@ -2,6 +2,8 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Utilisateur;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\Allergene;
 use App\Entity\Menu;
 use App\Entity\Plat;
@@ -12,8 +14,26 @@ use Doctrine\Persistence\ObjectManager;
 
 class AppFixtures extends Fixture
 {
+    public function __construct(
+    private UserPasswordHasherInterface $passwordHasher
+) {
+}
     public function load(ObjectManager $manager): void
     {
+        // Administrateur initial : José
+$jose = new Utilisateur();
+$jose->setNom('José');
+$jose->setPrenom('José');
+$jose->setTelephone('0600000000');
+$jose->setAdresse('Adresse à compléter');
+$jose->setEmail('jose@vite-et-gourmand.fr');
+$jose->setRoles(['ROLE_ADMINISTRATEUR']);
+
+$jose->setPassword(
+    $this->passwordHasher->hashPassword($jose, 'JoseAdmin123!')
+);
+
+$manager->persist($jose);
         // Thèmes
         $themeClassique = new Theme();
         $themeClassique->setNom('Classique');

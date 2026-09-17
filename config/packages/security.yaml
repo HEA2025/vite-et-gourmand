@@ -1,0 +1,51 @@
+security:
+    # Configuration du hashage des mots de passe
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # Hiérarchie des rôles de Vite & Gourmand
+    role_hierarchy:
+        ROLE_EMPLOYE: ROLE_USER
+        ROLE_ADMINISTRATEUR: ROLE_EMPLOYE
+
+    # Chargement des utilisateurs depuis la base de données
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\Utilisateur
+                property: email
+
+    firewalls:
+        dev:
+            # Outils de développement et ressources statiques
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+
+        main:
+            lazy: true
+            provider: app_user_provider
+
+            # Vérifie notamment si le compte est actif
+            user_checker: App\Security\UtilisateurChecker
+
+            # Connexion par formulaire
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                enable_csrf: true
+
+            # Déconnexion
+            logout:
+                path: app_logout
+
+    access_control:
+        # Les protections de routes seront ajoutées progressivement ici.
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

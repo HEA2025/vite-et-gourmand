@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un employé{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Créer un compte employé</h1>
+
+        {{ form_start(form) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.plainPassword) }}
+
+            <button type="submit" class="btn btn-primary">
+                Créer l'employé
+            </button>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
