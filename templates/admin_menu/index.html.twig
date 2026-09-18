@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration des menus - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h1>Administration des menus</h1>
+
+    <p>
+        <a href="{{ path('app_admin_menu_new') }}">
+            Ajouter un menu
+        </a>
+    </p>
+
+    {% if menus is empty %}
+        <p>Aucun menu enregistré.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Thème</th>
+                    <th>Régime</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for menu in menus %}
+                    <tr>
+                        <td>{{ menu.titre }}</td>
+                        <td>{{ menu.theme.nom }}</td>
+                        <td>{{ menu.regime.nom }}</td>
+                        <td>{{ menu.prixMinimum|number_format(2, ',', ' ') }} €</td>
+                        <td>{{ menu.stock }}</td>
+
+                        <td>
+                            <a href="{{ path('app_admin_menu_edit', {'id': menu.id}) }}">
+                                Modifier
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{{ path('app_admin_menu_delete', {'id': menu.id}) }}"
+                                style="display: inline;"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="_token"
+                                    value="{{ csrf_token('delete_menu_' ~ menu.id) }}"
+                                >
+
+                                <button type="submit">
+                                    Supprimer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</div>
+{% endblock %}

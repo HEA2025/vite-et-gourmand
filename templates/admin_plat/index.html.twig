@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration des plats - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h1>Administration des plats</h1>
+
+    <p>
+        <a href="{{ path('app_admin_plat_new') }}">
+            Ajouter un plat
+        </a>
+    </p>
+
+    {% if plats is empty %}
+        <p>Aucun plat enregistré.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Type</th>
+                    <th>Allergènes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for plat in plats %}
+                    <tr>
+                        <td>{{ plat.nom }}</td>
+                        <td>{{ plat.type }}</td>
+
+                        <td>
+                            {% if plat.allergenes is empty %}
+                                Aucun
+                            {% else %}
+                                {% for allergene in plat.allergenes %}
+                                    {{ allergene.nom }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a href="{{ path('app_admin_plat_edit', {'id': plat.id}) }}">
+                                Modifier
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{{ path('app_admin_plat_delete', {'id': plat.id}) }}"
+                                style="display: inline;"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="_token"
+                                    value="{{ csrf_token('delete_plat_' ~ plat.id) }}"
+                                >
+
+                                <button type="submit">
+                                    Supprimer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</div>
+{% endblock %}

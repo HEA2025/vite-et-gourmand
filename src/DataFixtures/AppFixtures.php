@@ -11,6 +11,7 @@ use App\Entity\Regime;
 use App\Entity\Theme;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use App\Entity\ImageMenu;
 
 class AppFixtures extends Fixture
 {
@@ -142,6 +143,28 @@ $menuVegetarien->addPlat($salade);
 $menuVegetarien->addPlat($gratin);
 $menuVegetarien->addPlat($saladeFruits);
 $manager->persist($menuVegetarien);
+
+// Images du Menu Gourmand
+$imageGourmand = new ImageMenu();
+$imageGourmand->setNomFichier('menu-gourmand.png');
+$imageGourmand->setMenu($menuClassique);
+$manager->persist($imageGourmand);
+
+$imagePlatGourmand = new ImageMenu();
+$imagePlatGourmand->setNomFichier('plat-gourmand.png');
+$imagePlatGourmand->setMenu($menuClassique);
+$manager->persist($imagePlatGourmand);
+
+$imageDessert = new ImageMenu();
+$imageDessert->setNomFichier('dessert-chocolat.png');
+$imageDessert->setMenu($menuClassique);
+$manager->persist($imageDessert);
+
+// Image du Menu Végétarien
+$imageVegetarien = new ImageMenu();
+$imageVegetarien->setNomFichier('menu-vegetarien.png');
+$imageVegetarien->setMenu($menuVegetarien);
+$manager->persist($imageVegetarien);
 
         $manager->flush();
     }

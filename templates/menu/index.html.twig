@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nos menus - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h1>Nos menus</h1>
+
+    <div class="mb-4">
+        <label for="filtre-theme">Thème :</label>
+        <select id="filtre-theme">
+            <option value="">Tous les thèmes</option>
+
+            {% for theme in themes %}
+                <option value="{{ theme.id }}">
+                    {{ theme.nom }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="filtre-regime">Régime :</label>
+        <select id="filtre-regime">
+            <option value="">Tous les régimes</option>
+
+            {% for regime in regimes %}
+                <option value="{{ regime.id }}">
+                    {{ regime.nom }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="filtre-prix-min">Prix min :</label>
+        <input type="number" id="filtre-prix-min" min="0">
+
+        <label for="filtre-prix-max">Prix max :</label>
+        <input type="number" id="filtre-prix-max" min="0">
+
+        <label for="filtre-personnes">Nombre de personnes :</label>
+        <input type="number" id="filtre-personnes" min="1">
+
+    </div>
+
+    <div id="liste-menus">
+        {% if menus is empty %}
+            <p>Aucun menu n'est disponible pour le moment.</p>
+        {% else %}
+            <div class="row">
+
+                {% for menu in menus %}
+                    <div class="col-md-6 mb-4">
+
+                        <div class="card h-100">
+                            <div class="card-body">
+
+                                <h2 class="card-title">
+                                    {{ menu.titre }}
+                                </h2>
+
+                                <p>{{ menu.description }}</p>
+
+                                <p>
+                                    <strong>Thème :</strong>
+                                    {{ menu.theme.nom }}
+                                </p>
+
+                                <p>
+                                    <strong>Régime :</strong>
+                                    {{ menu.regime.nom }}
+                                </p>
+
+                                <p>
+                                    <strong>À partir de :</strong>
+                                    {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                                </p>
+
+                                <p>
+                                    <strong>Minimum :</strong>
+                                    {{ menu.nombreMinimumPersonnes }} personnes
+                                </p>
+
+                                <p>
+                                    <strong>Stock :</strong>
+                                    {{ menu.stock }}
+                                </p>
+
+                                <p>
+                                    <a href="{{ path('app_menu_show', {'id': menu.id}) }}">
+                                        Voir le menu
+                                    </a>
+                                </p>
+
+                            </div>
+                        </div>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="/js/menus.js" defer></script>
+{% endblock %}

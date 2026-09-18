@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ menu.titre }} - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h1>{{ menu.titre }}</h1>
+
+    <p>{{ menu.description }}</p>
+
+    <p><strong>Thème :</strong> {{ menu.theme.nom }}</p>
+    <p><strong>Régime :</strong> {{ menu.regime.nom }}</p>
+
+    <p>
+        <strong>Prix :</strong>
+        {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+    </p>
+
+    <p>
+        <strong>Nombre minimum de personnes :</strong>
+        {{ menu.nombreMinimumPersonnes }}
+    </p>
+
+    <p><strong>Stock :</strong> {{ menu.stock }}</p>
+
+    <p>
+        <strong>Conditions :</strong>
+        {{ menu.conditions }}
+    </p>
+
+    <h2>Galerie d'images</h2>
+
+<div>
+    {% for image in menu.imageMenus %}
+        <img
+            src="/images/menus/{{ image.nomFichier }}"
+            alt="{{ menu.titre }}"
+            width="300"
+        >
+    {% else %}
+        <p>Aucune image pour ce menu.</p>
+    {% endfor %}
+</div>
+
+    <h2>Composition du menu</h2>
+
+    {% for plat in menu.plats %}
+        <div>
+            <h3>{{ plat.nom }}</h3>
+
+            <p><strong>Type :</strong> {{ plat.type }}</p>
+
+            <p>{{ plat.description }}</p>
+
+            <p>
+                <strong>Allergènes :</strong>
+
+                {% if plat.allergenes is empty %}
+                    Aucun
+                {% else %}
+                    {% for allergene in plat.allergenes %}
+                        {{ allergene.nom }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </p>
+        </div>
+    {% else %}
+        <p>Aucun plat dans ce menu.</p>
+    {% endfor %}
+
+    <p>
+        <a href="{{ path('app_menu_index') }}">Retour aux menus</a>
+    </p>
+
+</div>
+{% endblock %}

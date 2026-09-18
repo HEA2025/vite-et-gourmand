@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un plat - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h1>Ajouter un plat</h1>
+
+    {{ form_start(form) }}
+
+        {{ form_row(form.nom) }}
+        {{ form_row(form.description) }}
+        {{ form_row(form.type) }}
+        {{ form_row(form.allergenes) }}
+
+        <button type="submit">Ajouter le plat</button>
+
+    {{ form_end(form) }}
+
+    <p>
+        <a href="{{ path('app_admin_plat_index') }}">
+            Retour à la liste des plats
+        </a>
+    </p>
+
+</div>
+{% endblock %}
