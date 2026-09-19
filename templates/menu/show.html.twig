@@ -22,26 +22,30 @@
         {{ menu.nombreMinimumPersonnes }}
     </p>
 
-    <p><strong>Stock :</strong> {{ menu.stock }}</p>
-
     <p>
-        <strong>Conditions :</strong>
-        {{ menu.conditions }}
+        <strong>Stock :</strong>
+        {{ menu.stock }}
     </p>
+
+    {# Les conditions du menu doivent être clairement visibles avant la commande. #}
+    <div class="alert alert-warning">
+        <strong>Conditions du menu :</strong>
+        {{ menu.conditions }}
+    </div>
 
     <h2>Galerie d'images</h2>
 
-<div>
-    {% for image in menu.imageMenus %}
-        <img
-            src="/images/menus/{{ image.nomFichier }}"
-            alt="{{ menu.titre }}"
-            width="300"
-        >
-    {% else %}
-        <p>Aucune image pour ce menu.</p>
-    {% endfor %}
-</div>
+    <div>
+        {% for image in menu.imageMenus %}
+            <img
+                src="/images/menus/{{ image.nomFichier }}"
+                alt="{{ menu.titre }}"
+                width="300"
+            >
+        {% else %}
+            <p>Aucune image pour ce menu.</p>
+        {% endfor %}
+    </div>
 
     <h2>Composition du menu</h2>
 
@@ -49,7 +53,10 @@
         <div>
             <h3>{{ plat.nom }}</h3>
 
-            <p><strong>Type :</strong> {{ plat.type }}</p>
+            <p>
+                <strong>Type :</strong>
+                {{ plat.type }}
+            </p>
 
             <p>{{ plat.description }}</p>
 
@@ -69,9 +76,28 @@
         <p>Aucun plat dans ce menu.</p>
     {% endfor %}
 
-    <p>
-        <a href="{{ path('app_menu_index') }}">Retour aux menus</a>
-    </p>
+    <hr>
+
+    {# Le menu est transmis dans l'URL pour préremplir la commande. #}
+    {% if menu.stock > 0 %}
+        <a
+            href="{{ path('app_commande_new', {'id': menu.id}) }}"
+            class="btn btn-primary"
+        >
+            Commander ce menu
+        </a>
+    {% else %}
+        <p>
+            <strong>Ce menu n'est actuellement plus disponible.</strong>
+        </p>
+    {% endif %}
+
+    <a
+        href="{{ path('app_menu_index') }}"
+        class="btn btn-outline-secondary"
+    >
+        Retour aux menus
+    </a>
 
 </div>
 {% endblock %}

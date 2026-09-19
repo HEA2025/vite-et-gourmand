@@ -1,0 +1,329 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commande n°{{ commande.id }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Commande n°{{ commande.id }}</h1>
+
+        <a
+            href="{{ path('app_employe_commande_index') }}"
+            class="btn btn-outline-secondary"
+        >
+            Retour aux commandes
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row g-4">
+
+        <div class="col-lg-6">
+
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <h2 class="h4">Informations</h2>
+
+                    <p>
+                        <strong>Client :</strong>
+                        {{ commande.utilisateur.prenom }}
+                        {{ commande.utilisateur.nom }}
+                    </p>
+
+                    <p>
+                        <strong>Email :</strong>
+                        {{ commande.utilisateur.email }}
+                    </p>
+
+                    <p>
+                        <strong>GSM :</strong>
+                        {{ commande.utilisateur.telephone }}
+                    </p>
+
+                    <p>
+                        <strong>Menu :</strong>
+                        {{ commande.menu.titre }}
+                    </p>
+
+                    <p>
+                        <strong>Adresse :</strong>
+                        {{ commande.adressePrestation }}
+                    </p>
+
+                    <p>
+                        <strong>Date :</strong>
+                        {{ commande.datePrestation|date('d/m/Y') }}
+                    </p>
+
+                    <p>
+                        <strong>Heure :</strong>
+                        {{ commande.heureLivraison|date('H:i') }}
+                    </p>
+
+                    <p>
+                        <strong>Personnes :</strong>
+                        {{ commande.nombrePersonnes }}
+                    </p>
+
+                    <p>
+                        <strong>Total :</strong>
+                        {{ commande.prixTotal|number_format(2, ',', ' ') }} €
+                    </p>
+
+                    <p>
+                        <strong>Statut :</strong>
+                        {{ statutActuel }}
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <h2 class="h4">
+                        Modifier ou annuler
+                    </h2>
+
+                    <p>
+                        Le client doit être contacté avant l'intervention.
+                    </p>
+
+                    <a
+                        href="{{ path(
+                            'app_employe_commande_edit',
+                            {id: commande.id}
+                        ) }}"
+                        class="btn btn-warning mb-3"
+                    >
+                        Modifier la commande
+                    </a>
+
+                    <form
+                        method="post"
+                        action="{{ path(
+                            'app_employe_commande_cancel',
+                            {id: commande.id}
+                        ) }}"
+                    >
+                        <input
+                            type="hidden"
+                            name="_token"
+                            value="{{ csrf_token(
+                                'annuler_employe_' ~ commande.id
+                            ) }}"
+                        >
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Moyen de contact
+                            </label>
+
+                            <select
+                                name="moyen_contact"
+                                class="form-select"
+                                required
+                            >
+                                <option value="">Choisir</option>
+                                <option value="gsm">GSM</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Motif de l'annulation
+                            </label>
+
+                            <textarea
+                                name="motif"
+                                class="form-control"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button
+                            class="btn btn-danger"
+                            onclick="return confirm(
+                                'Confirmer l’annulation ?'
+                            );"
+                        >
+                            Annuler la commande
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-6">
+
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <h2 class="h4">
+                        Modifier le statut
+                    </h2>
+
+                    <form
+                        method="post"
+                        action="{{ path(
+                            'app_employe_commande_statut',
+                            {id: commande.id}
+                        ) }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="_token"
+                            value="{{ csrf_token(
+                                'statut_commande_' ~ commande.id
+                            ) }}"
+                        >
+
+                        <div class="mb-3">
+                            <label
+                                for="statut"
+                                class="form-label"
+                            >
+                                Nouveau statut
+                            </label>
+
+                            <select
+                                name="statut"
+                                id="statut"
+                                class="form-select"
+                                required
+                            >
+                                <option value="acceptée">
+                                    Acceptée
+                                </option>
+
+                                <option value="en préparation">
+                                    En préparation
+                                </option>
+
+                                <option value="en cours de livraison">
+                                    En cours de livraison
+                                </option>
+
+                                <option value="livrée">
+                                    Livrée
+                                </option>
+
+                                <option value="en attente du retour de matériel">
+                                    En attente du retour de matériel
+                                </option>
+
+                                <option value="terminée">
+                                    Terminée
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input
+                                type="checkbox"
+                                name="materiel_prete"
+                                value="1"
+                                id="materiel_prete"
+                                class="form-check-input"
+                                {% if commande.materielPrete %}checked{% endif %}
+                            >
+
+                            <label
+                                for="materiel_prete"
+                                class="form-check-label"
+                            >
+                                Du matériel a été prêté
+                            </label>
+                        </div>
+
+                        <button class="btn btn-primary">
+                            Mettre à jour le statut
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+            {% if commande.dateContactEmploye %}
+                <div class="card mb-4">
+                    <div class="card-body">
+
+                        <h2 class="h4">
+                            Dernier contact client
+                        </h2>
+
+                        <p>
+                            <strong>Moyen :</strong>
+                            {{ commande.moyenContactEmploye }}
+                        </p>
+
+                        <p>
+                            <strong>Date :</strong>
+                            {{ commande.dateContactEmploye|date(
+                                'd/m/Y à H:i'
+                            ) }}
+                        </p>
+
+                        <p>
+                            <strong>Motif :</strong>
+                            {{ commande.motifInterventionEmploye }}
+                        </p>
+
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-body">
+
+                    <h2 class="h4">Historique</h2>
+
+                    <ul class="list-group">
+
+                        {% for historique in commande.historiqueStatutCommandes %}
+                            <li class="list-group-item">
+
+                                <strong>
+                                    {{ historique.statut }}
+                                </strong>
+
+                                <br>
+
+                                <small>
+                                    {{ historique.dateModification|date(
+                                        'd/m/Y à H:i'
+                                    ) }}
+                                </small>
+
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">
+                                Aucun historique.
+                            </li>
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

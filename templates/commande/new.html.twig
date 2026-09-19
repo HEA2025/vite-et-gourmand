@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commander - {{ menu.titre }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    <h1 class="mb-4">Commander : {{ menu.titre }}</h1>
+
+    {# Les informations du compte sont affichées automatiquement. #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5">Vos informations</h2>
+
+            <p>
+                <strong>Nom :</strong>
+                {{ app.user.nom }}
+            </p>
+
+            <p>
+                <strong>Prénom :</strong>
+                {{ app.user.prenom }}
+            </p>
+
+            <p>
+                <strong>Email :</strong>
+                {{ app.user.email }}
+            </p>
+
+            <p>
+                <strong>GSM :</strong>
+                {{ app.user.telephone }}
+            </p>
+        </div>
+    </div>
+
+    {# Le menu provient du bouton "Commander" de sa page détaillée. #}
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <h2 class="h5">Menu sélectionné</h2>
+
+            <p><strong>{{ menu.titre }}</strong></p>
+
+            <p>{{ menu.description }}</p>
+
+            <p>
+                <strong>Prix :</strong>
+                {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+            </p>
+
+            <p>
+                <strong>Minimum :</strong>
+                {{ menu.nombreMinimumPersonnes }} personnes
+            </p>
+
+            {# Les conditions doivent rester visibles avant la validation. #}
+            <div class="alert alert-warning">
+                <strong>Conditions :</strong>
+                {{ menu.conditions }}
+            </div>
+
+        </div>
+    </div>
+
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="row g-4">
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Informations de la prestation
+                    </h2>
+
+                    {{ form_start(form) }}
+
+                        {{ form_widget(form) }}
+
+                        {# Le prix affiché ici est recalculé côté serveur à l'enregistrement. #}
+                        <button
+                            type="submit"
+                            class="btn btn-primary mt-3"
+                        >
+                            Confirmer la commande
+                        </button>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+
+                    <h2 class="h5 mb-3">
+                        Détail du prix
+                    </h2>
+
+                    <p>
+                        Prix du menu :
+                        <strong id="prix-menu">
+                            {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                        </strong>
+                    </p>
+
+                    <p>
+                        Réduction :
+                        <strong id="reduction-prix">
+                            0,00 €
+                        </strong>
+                    </p>
+
+                    <p>
+                        Frais de livraison :
+                        <strong id="frais-livraison">
+                            0,00 €
+                        </strong>
+                    </p>
+
+                    <hr>
+
+                    <p class="fs-5">
+                        Total :
+                        <strong id="prix-total">
+                            {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                        </strong>
+                    </p>
+
+                    <small>
+                        La réduction de 10 % s'applique à partir de
+                        {{ menu.nombreMinimumPersonnes + 5 }} personnes.
+                    </small>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // Valeurs du menu utilisées uniquement pour l'aperçu du prix.
+    const prixMenu = {{ menu.prixMinimum }};
+    const nombreMinimum = {{ menu.nombreMinimumPersonnes }};
+
+    const personnesInput = document.getElementById(
+        'commande_nombrePersonnes'
+    );
+
+    const distanceInput = document.getElementById(
+        'commande_distanceLivraison'
+    );
+
+    /**
+     * Met à jour le détail du prix avant la validation.
+     * Le serveur refera le calcul pour sécuriser le montant enregistré.
+     */
+    function mettreAJourPrix() {
+        const nombrePersonnes = Number(personnesInput?.value || 0);
+        const distance = Math.max(
+            0,
+            Number(distanceInput?.value || 0)
+        );
+
+        let reduction = 0;
+        let livraison = 0;
+
+        // Réduction de 10 % à partir de 5 personnes au-dessus du minimum.
+        if (nombrePersonnes >= nombreMinimum + 5) {
+            reduction = prixMenu * 0.10;
+        }
+
+        // Bordeaux est gratuit. Hors Bordeaux : 5 € + 0,59 €/km.
+        if (distance > 0) {
+            livraison = 5 + (0.59 * distance);
+        }
+
+        const total = prixMenu - reduction + livraison;
+
+        document.getElementById('reduction-prix').textContent =
+            reduction.toFixed(2).replace('.', ',') + ' €';
+
+        document.getElementById('frais-livraison').textContent =
+            livraison.toFixed(2).replace('.', ',') + ' €';
+
+        document.getElementById('prix-total').textContent =
+            total.toFixed(2).replace('.', ',') + ' €';
+    }
+
+    personnesInput?.addEventListener('input', mettreAJourPrix);
+    distanceInput?.addEventListener('input', mettreAJourPrix);
+
+    // Affiche le bon montant dès l'ouverture de la page.
+    mettreAJourPrix();
+</script>
+{% endblock %}

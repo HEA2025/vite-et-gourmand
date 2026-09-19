@@ -37,11 +37,30 @@ class Commande
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $fraisLivraison = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?float $distanceLivraison = null;
+
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $prixTotal = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $dateCreation = null;
+
+    // Indique si le client doit restituer du matériel après la prestation.
+    #[ORM\Column(options: ['default' => false])]
+    private bool $materielPrete = false;
+
+    // Conserve la manière dont l'employé a contacté le client.
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $moyenContactEmploye = null;
+
+    // Conserve la raison d'une modification ou annulation faite par l'employé.
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $motifInterventionEmploye = null;
+
+    // Permet de savoir quand le client a été contacté.
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $dateContactEmploye = null;
 
     #[ORM\ManyToOne(inversedBy: 'commandes')]
     #[ORM\JoinColumn(nullable: false)]
@@ -50,7 +69,10 @@ class Commande
     /**
      * @var Collection<int, HistoriqueStatutCommande>
      */
-    #[ORM\OneToMany(targetEntity: HistoriqueStatutCommande::class, mappedBy: 'commande')]
+    #[ORM\OneToMany(
+        targetEntity: HistoriqueStatutCommande::class,
+        mappedBy: 'commande'
+    )]
     private Collection $historiqueStatutCommandes;
 
     #[ORM\OneToOne(mappedBy: 'commande', cascade: ['persist', 'remove'])]
@@ -154,6 +176,18 @@ class Commande
         return $this;
     }
 
+    public function getDistanceLivraison(): ?float
+    {
+        return $this->distanceLivraison;
+    }
+
+    public function setDistanceLivraison(?float $distanceLivraison): static
+    {
+        $this->distanceLivraison = $distanceLivraison;
+
+        return $this;
+    }
+
     public function getPrixTotal(): ?string
     {
         return $this->prixTotal;
@@ -178,6 +212,56 @@ class Commande
         return $this;
     }
 
+    public function isMaterielPrete(): bool
+    {
+        return $this->materielPrete;
+    }
+
+    public function setMaterielPrete(bool $materielPrete): static
+    {
+        $this->materielPrete = $materielPrete;
+
+        return $this;
+    }
+
+    public function getMoyenContactEmploye(): ?string
+    {
+        return $this->moyenContactEmploye;
+    }
+
+    public function setMoyenContactEmploye(?string $moyenContactEmploye): static
+    {
+        $this->moyenContactEmploye = $moyenContactEmploye;
+
+        return $this;
+    }
+
+    public function getMotifInterventionEmploye(): ?string
+    {
+        return $this->motifInterventionEmploye;
+    }
+
+    public function setMotifInterventionEmploye(
+        ?string $motifInterventionEmploye
+    ): static {
+        $this->motifInterventionEmploye = $motifInterventionEmploye;
+
+        return $this;
+    }
+
+    public function getDateContactEmploye(): ?\DateTimeImmutable
+    {
+        return $this->dateContactEmploye;
+    }
+
+    public function setDateContactEmploye(
+        ?\DateTimeImmutable $dateContactEmploye
+    ): static {
+        $this->dateContactEmploye = $dateContactEmploye;
+
+        return $this;
+    }
+
     public function getMenu(): ?Menu
     {
         return $this->menu;
@@ -198,20 +282,29 @@ class Commande
         return $this->historiqueStatutCommandes;
     }
 
-    public function addHistoriqueStatutCommande(HistoriqueStatutCommande $historiqueStatutCommande): static
-    {
-        if (!$this->historiqueStatutCommandes->contains($historiqueStatutCommande)) {
-            $this->historiqueStatutCommandes->add($historiqueStatutCommande);
+    public function addHistoriqueStatutCommande(
+        HistoriqueStatutCommande $historiqueStatutCommande
+    ): static {
+        if (
+            !$this->historiqueStatutCommandes
+                ->contains($historiqueStatutCommande)
+        ) {
+            $this->historiqueStatutCommandes
+                ->add($historiqueStatutCommande);
+
             $historiqueStatutCommande->setCommande($this);
         }
 
         return $this;
     }
 
-    public function removeHistoriqueStatutCommande(HistoriqueStatutCommande $historiqueStatutCommande): static
-    {
-        if ($this->historiqueStatutCommandes->removeElement($historiqueStatutCommande)) {
-            // set the owning side to null (unless already changed)
+    public function removeHistoriqueStatutCommande(
+        HistoriqueStatutCommande $historiqueStatutCommande
+    ): static {
+        if (
+            $this->historiqueStatutCommandes
+                ->removeElement($historiqueStatutCommande)
+        ) {
             if ($historiqueStatutCommande->getCommande() === $this) {
                 $historiqueStatutCommande->setCommande(null);
             }
@@ -227,7 +320,6 @@ class Commande
 
     public function setAvis(Avis $avis): static
     {
-        // set the owning side of the relation if necessary
         if ($avis->getCommande() !== $this) {
             $avis->setCommande($this);
         }

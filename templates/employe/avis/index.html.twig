@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des avis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    <h1 class="mb-4">Gestion des avis</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% if avisListe is empty %}
+
+        <div class="alert alert-info">
+            Aucun avis à afficher.
+        </div>
+
+    {% else %}
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Menu</th>
+                        <th>Note</th>
+                        <th>Commentaire</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for avis in avisListe %}
+                    <tr>
+
+                        <td>
+                            {{ avis.commande.utilisateur.prenom }}
+                            {{ avis.commande.utilisateur.nom }}
+                        </td>
+
+                        <td>
+                            {{ avis.commande.menu.titre }}
+                        </td>
+
+                        <td>
+                            {{ avis.note }}/5
+                        </td>
+
+                        <td>
+                            {{ avis.commentaire }}
+                        </td>
+
+                        <td>
+                            {{ avis.statut }}
+                        </td>
+
+                        <td>
+                            {% if avis.statut == 'en attente' %}
+
+                                <form
+                                    method="post"
+                                    action="{{ path(
+                                        'app_employe_avis_statut',
+                                        {id: avis.id}
+                                    ) }}"
+                                    class="d-inline"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="_token"
+                                        value="{{ csrf_token(
+                                            'statut_avis_' ~ avis.id
+                                        ) }}"
+                                    >
+
+                                    <button
+                                        name="statut"
+                                        value="validé"
+                                        class="btn btn-sm btn-success"
+                                    >
+                                        Valider
+                                    </button>
+
+                                    <button
+                                        name="statut"
+                                        value="refusé"
+                                        class="btn btn-sm btn-danger"
+                                    >
+                                        Refuser
+                                    </button>
+                                </form>
+
+                            {% else %}
+                                Traité
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

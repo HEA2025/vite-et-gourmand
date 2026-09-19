@@ -35,6 +35,21 @@ $jose->setPassword(
 );
 
 $manager->persist($jose);
+
+        // Client de test : Jean
+$jean = new Utilisateur();
+$jean->setNom('Dupont');
+$jean->setPrenom('Jean');
+$jean->setTelephone('0612345678');
+$jean->setAdresse('10 rue Sainte-Catherine, 33000 Bordeaux');
+$jean->setEmail('jean@vite-et-gourmand.fr');
+$jean->setRoles(['ROLE_USER']);
+
+$jean->setPassword(
+    $this->passwordHasher->hashPassword($jean, 'Bonjour123!')
+);
+
+$manager->persist($jean);
         // Thèmes
         $themeClassique = new Theme();
         $themeClassique->setNom('Classique');

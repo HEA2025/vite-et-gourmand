@@ -16,28 +16,30 @@ class CommandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Commande::class);
     }
 
-//    /**
-//     * @return Commande[] Returns an array of Commande objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Recherche les commandes par client.
+     *
+     * @return Commande[]
+     */
+    public function findByClient(?string $client): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.utilisateur', 'u')
+            ->addSelect('u')
+            ->orderBy('c.dateCreation', 'DESC');
 
-//    public function findOneBySomeField($value): ?Commande
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if ($client !== null && trim($client) !== '') {
+            $recherche = '%' . mb_strtolower(trim($client)) . '%';
+
+            $qb
+                ->andWhere(
+                    'LOWER(u.nom) LIKE :client
+                    OR LOWER(u.prenom) LIKE :client
+                    OR LOWER(u.email) LIKE :client'
+                )
+                ->setParameter('client', $recherche);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

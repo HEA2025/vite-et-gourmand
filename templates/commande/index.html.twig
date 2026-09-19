@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes commandes{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    <h1 class="mb-4">Mes commandes</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% if commandes is empty %}
+
+        <div class="alert alert-info">
+            Vous n'avez encore aucune commande.
+        </div>
+
+        <a href="{{ path('app_menu_index') }}" class="btn btn-primary">
+            Voir les menus
+        </a>
+
+    {% else %}
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Menu</th>
+                        <th>Date</th>
+                        <th>Personnes</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for commande in commandes %}
+
+                    {% set dernierHistorique = null %}
+
+                    {% for historique in commande.historiqueStatutCommandes %}
+                        {% if dernierHistorique is null
+                            or historique.dateModification > dernierHistorique.dateModification %}
+                            {% set dernierHistorique = historique %}
+                        {% endif %}
+                    {% endfor %}
+
+                    <tr>
+                        <td>{{ commande.id }}</td>
+
+                        <td>{{ commande.menu.titre }}</td>
+
+                        <td>
+                            {{ commande.datePrestation|date('d/m/Y') }}
+                        </td>
+
+                        <td>{{ commande.nombrePersonnes }}</td>
+
+                        <td>
+                            {{ commande.prixTotal|number_format(2, ',', ' ') }} €
+                        </td>
+
+                        <td>
+                            {% if dernierHistorique %}
+                                {{ dernierHistorique.statut }}
+                            {% else %}
+                                en attente
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a
+                                href="{{ path(
+                                    'app_commande_show',
+                                    {id: commande.id}
+                                ) }}"
+                                class="btn btn-sm btn-primary"
+                            >
+                                Voir
+                            </a>
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}
