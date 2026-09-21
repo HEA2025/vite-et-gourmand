@@ -67,7 +67,7 @@ class CommandeController extends AbstractController
             }
 
             // Le calcul JavaScript n'est qu'un aperçu.
-            // Le vrai montant enregistré est calculé ici côté serveur.
+            // Le vrai montant enregistré est toujours recalculé côté serveur.
             $this->calculerPrix($commande);
 
             // Toute nouvelle commande commence avec le statut "en attente".
@@ -325,12 +325,17 @@ class CommandeController extends AbstractController
     {
         $menu = $commande->getMenu();
 
-        return $commande->getNombrePersonnes()
-            >= $menu->getNombreMinimumPersonnes();
+        return $menu !== null
+            && $commande->getNombrePersonnes() !== null
+            && $commande->getNombrePersonnes()
+                >= $menu->getNombreMinimumPersonnes();
     }
 
     /**
      * Calcule les montants définitifs enregistrés en base.
+     *
+     * Le prix minimum du menu correspond au nombre minimum de personnes.
+     * Le prix est donc adapté au nombre réel de personnes commandées.
      *
      * Réduction :
      * 10 % à partir de 5 personnes supplémentaires par rapport au minimum.
@@ -342,14 +347,33 @@ class CommandeController extends AbstractController
     {
         $menu = $commande->getMenu();
 
-        $nombrePersonnes = $commande->getNombrePersonnes();
-        $nombreMinimum = $menu->getNombreMinimumPersonnes();
+        // Sécurité : une commande enregistrée doit toujours avoir un menu.
+        if ($menu === null) {
+            throw new \LogicException(
+                'Impossible de calculer le prix sans menu.'
+            );
+        }
 
-        $prixMenu = (float) $menu->getPrixMinimum();
+        $nombrePersonnes = $commande->getNombrePersonnes() ?? 0;
+        $nombreMinimum = $menu->getNombreMinimumPersonnes() ?? 0;
+        $prixMinimum = (float) $menu->getPrixMinimum();
+
+        // Évite une division par zéro si les données du menu sont incorrectes.
+        if ($nombreMinimum <= 0) {
+            throw new \LogicException(
+                'Le nombre minimum de personnes du menu doit être supérieur à zéro.'
+            );
+        }
+
+        // Le prix minimum correspond au nombre minimum de personnes.
+        $prixParPersonne = $prixMinimum / $nombreMinimum;
+
+        // Le prix du menu évolue selon le nombre réel de personnes.
+        $prixMenu = $prixParPersonne * $nombrePersonnes;
 
         $reduction = 0.0;
 
-        // Applique la réduction prévue à partir du seuil demandé.
+        // Applique 10 % à partir de 5 personnes au-dessus du minimum.
         if ($nombrePersonnes >= ($nombreMinimum + 5)) {
             $reduction = $prixMenu * 0.10;
         }
@@ -370,6 +394,7 @@ class CommandeController extends AbstractController
 
         $commande->setDistanceLivraison($distanceLivraison);
 
+        // Doctrine attend des chaînes pour les colonnes DECIMAL.
         $commande->setPrixMenu(
             number_format($prixMenu, 2, '.', '')
         );

@@ -45,13 +45,9 @@
             <p>{{ menu.description }}</p>
 
             <p>
-                <strong>Prix :</strong>
+                <strong>Prix minimum :</strong>
                 {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
-            </p>
-
-            <p>
-                <strong>Minimum :</strong>
-                {{ menu.nombreMinimumPersonnes }} personnes
+                pour {{ menu.nombreMinimumPersonnes }} personnes
             </p>
 
             {# Les conditions doivent rester visibles avant la validation. #}
@@ -83,7 +79,7 @@
 
                         {{ form_widget(form) }}
 
-                        {# Le prix affiché ici est recalculé côté serveur à l'enregistrement. #}
+                        {# Le serveur recalcule toujours le prix avant l'enregistrement. #}
                         <button
                             type="submit"
                             class="btn btn-primary mt-3"
@@ -149,9 +145,10 @@
 </div>
 
 <script>
-    // Valeurs du menu utilisées uniquement pour l'aperçu du prix.
-    const prixMenu = {{ menu.prixMinimum }};
+    // Le prix minimum correspond au nombre minimum de personnes.
+    const prixMinimum = {{ menu.prixMinimum }};
     const nombreMinimum = {{ menu.nombreMinimumPersonnes }};
+    const prixParPersonne = prixMinimum / nombreMinimum;
 
     const personnesInput = document.getElementById(
         'commande_nombrePersonnes'
@@ -162,15 +159,22 @@
     );
 
     /**
-     * Met à jour le détail du prix avant la validation.
-     * Le serveur refera le calcul pour sécuriser le montant enregistré.
+     * Met à jour l'aperçu du prix selon le nombre de personnes.
+     * Le serveur refait ensuite le même calcul avant l'enregistrement.
      */
     function mettreAJourPrix() {
-        const nombrePersonnes = Number(personnesInput?.value || 0);
+        const nombrePersonnes = Math.max(
+            0,
+            Number(personnesInput?.value || 0)
+        );
+
         const distance = Math.max(
             0,
             Number(distanceInput?.value || 0)
         );
+
+        // Adapte le prix du menu au nombre réel de personnes.
+        const prixMenu = prixParPersonne * nombrePersonnes;
 
         let reduction = 0;
         let livraison = 0;
@@ -186,6 +190,9 @@
         }
 
         const total = prixMenu - reduction + livraison;
+
+        document.getElementById('prix-menu').textContent =
+            prixMenu.toFixed(2).replace('.', ',') + ' €';
 
         document.getElementById('reduction-prix').textContent =
             reduction.toFixed(2).replace('.', ',') + ' €';

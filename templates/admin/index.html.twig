@@ -3,72 +3,78 @@
 {% block title %}Administration{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1>Administration</h1>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Administration</h1>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">
-            {{ message }}
+            <a href="{{ path('app_admin_employe_nouveau') }}" class="btn btn-primary">
+                Créer un employé
+            </a>
         </div>
-    {% endfor %}
 
-    <p>
-        <a href="{{ path('app_admin_employe_nouveau') }}" class="btn btn-primary">
-            Créer un employé
-        </a>
-    </p>
+        {# Affiche les confirmations après création ou changement de statut. #}
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
 
-    <h2>Employés</h2>
+        <h2>Gestion des employés</h2>
 
-    {% if employes is empty %}
-        <p>Aucun employé.</p>
-    {% else %}
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Statut</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        {% if employes is empty %}
+            <div class="alert alert-info">
+                Aucun employé enregistré.
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Statut</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
-            <tbody>
-                {% for employe in employes %}
-                    <tr>
-                        <td>{{ employe.email }}</td>
+                    <tbody>
+                        {% for employe in employes %}
+                            <tr>
+                                <td>{{ employe.email }}</td>
 
-                        <td>
-                            {% if employe.actif %}
-                                Actif
-                            {% else %}
-                                Désactivé
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            <form
-                                method="post"
-                                action="{{ path('app_admin_employe_statut', {id: employe.id}) }}"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="_token"
-                                    value="{{ csrf_token('statut_employe_' ~ employe.id) }}"
-                                >
-
-                                <button type="submit" class="btn btn-secondary">
+                                <td>
                                     {% if employe.actif %}
-                                        Désactiver
+                                        <span class="badge text-bg-success">Actif</span>
                                     {% else %}
-                                        Réactiver
+                                        <span class="badge text-bg-secondary">Désactivé</span>
                                     {% endif %}
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
+                                </td>
+
+                                <td>
+                                    {# Le changement de statut est protégé par un token CSRF. #}
+                                    <form
+                                        method="post"
+                                        action="{{ path('app_admin_employe_statut', {id: employe.id}) }}"
+                                        class="d-inline"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="_token"
+                                            value="{{ csrf_token('statut_employe_' ~ employe.id) }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm {{ employe.actif ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                        >
+                                            {{ employe.actif ? 'Désactiver' : 'Réactiver' }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

@@ -17,8 +17,11 @@ class EmployeType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('email', EmailType::class)
+            ->add('email', EmailType::class, [
+                'label' => 'Adresse e-mail',
+            ])
             ->add('plainPassword', PasswordType::class, [
+                // Le mot de passe en clair ne doit jamais être enregistré en base.
                 'mapped' => false,
                 'label' => 'Mot de passe',
                 'constraints' => [

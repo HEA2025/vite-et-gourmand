@@ -20,41 +20,42 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
     }
 
     /**
-     * Used to upgrade (rehash) the user's password automatically over time.
+     * Met à jour automatiquement le hash du mot de passe lorsque Symfony le demande.
      */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
-    {
+    public function upgradePassword(
+        PasswordAuthenticatedUserInterface $user,
+        string $newHashedPassword
+    ): void {
         if (!$user instanceof Utilisateur) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+            throw new UnsupportedUserException(
+                sprintf('Instances of "%s" are not supported.', $user::class)
+            );
         }
 
         $user->setPassword($newHashedPassword);
+
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
     }
 
-//    /**
-//     * @return Utilisateur[] Returns an array of Utilisateur objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Retourne uniquement les comptes ayant réellement le rôle employé.
+     * Les administrateurs ne sont pas inclus dans cette liste.
+     *
+     * @return Utilisateur[]
+     */
+    public function findEmployes(): array
+    {
+        $utilisateurs = $this->findBy([], ['email' => 'ASC']);
 
-//    public function findOneBySomeField($value): ?Utilisateur
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return array_values(array_filter(
+            $utilisateurs,
+            static function (Utilisateur $utilisateur): bool {
+                $roles = $utilisateur->getRoles();
+
+                return in_array('ROLE_EMPLOYE', $roles, true)
+                    && !in_array('ROLE_ADMINISTRATEUR', $roles, true);
+            }
+        ));
+    }
 }
