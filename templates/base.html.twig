@@ -33,8 +33,9 @@
 
         <div class="container">
 
+            {# Le nom du site permet toujours de revenir à l'accueil. #}
             <a class="navbar-brand fw-bold"
-               href="{{ path('app_menu_index') }}">
+               href="{{ path('app_home') }}">
                 Vite & Gourmand
             </a>
 
@@ -52,6 +53,14 @@
                  id="navigationPrincipale">
 
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                    {# L'énoncé demande un accès à la page d'accueil. #}
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{{ path('app_home') }}">
+                            Accueil
+                        </a>
+                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link"
@@ -102,10 +111,7 @@
                         </li>
                     {% endif %}
 
-                    {#
-                        L'énoncé demande que la page Contact soit accessible
-                        depuis le menu applicatif.
-                    #}
+                    {# La page Contact reste accessible à tous les utilisateurs. #}
                     <li class="nav-item">
                         <a class="nav-link"
                            href="{{ path('app_contact') }}">
@@ -183,11 +189,19 @@
                     Service traiteur pour vos repas et événements.
                 </p>
 
-                {# Les liens clairs restent lisibles sur le fond sombre. #}
+                {#
+                    Le footer donne accès aux pages d'information
+                    demandées dans l'énoncé.
+                #}
                 <div class="d-flex flex-column align-items-start gap-2">
                     <a class="link-light"
                        href="{{ path('app_contact') }}">
                         Contact
+                    </a>
+
+                    <a class="link-light"
+                       href="{{ path('app_mentions_legales') }}">
+                        Mentions légales
                     </a>
 
                     <a class="link-light"

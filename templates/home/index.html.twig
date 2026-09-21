@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Vite & Gourmand{% endblock %}
+
+{% block body %}
+
+{# Présentation principale de l'entreprise. #}
+<section class="container py-5">
+    <div class="row align-items-center gy-4">
+        <div class="col-lg-8">
+            <p class="text-uppercase fw-semibold mb-2">
+                Traiteur à Bordeaux
+            </p>
+
+            <h1 class="display-5 fw-bold">
+                Vite & Gourmand
+            </h1>
+
+            <p class="lead">
+                Depuis 25 ans, Julie et José proposent leurs prestations
+                de traiteur pour vos repas et vos événements.
+            </p>
+
+            <p>
+                Vite & Gourmand vous accompagne pour différentes occasions,
+                du simple repas aux événements comme Noël ou Pâques,
+                avec des menus qui évoluent régulièrement.
+            </p>
+
+            <a class="btn btn-primary"
+               href="{{ path('app_menu_index') }}">
+                Découvrir nos menus
+            </a>
+        </div>
+    </div>
+</section>
+
+{# L'énoncé demande de mettre en avant le professionnalisme de l'équipe. #}
+<section class="bg-body-tertiary py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 text-center">
+                <h2 class="mb-3">
+                    Une équipe à votre service
+                </h2>
+
+                <p class="mb-0">
+                    Julie et José mettent leur expérience et leur
+                    savoir-faire au service de vos événements.
+                    Ils proposent des menus adaptés aux différentes
+                    occasions et assurent le suivi de vos commandes.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Seuls les avis ayant été validés par un employé arrivent dans cette liste. #}
+<section class="container py-5">
+    <div class="text-center mb-4">
+        <h2>Les avis de nos clients</h2>
+        <p class="text-muted">
+            Découvrez les retours de nos clients.
+        </p>
+    </div>
+
+    {% if avisValides %}
+        <div class="row g-4 justify-content-center">
+            {% for avis in avisValides %}
+                <div class="col-md-6 col-lg-4">
+                    <article class="card h-100 shadow-sm">
+                        <div class="card-body">
+
+                            <p class="fw-bold mb-2"
+                               aria-label="Note : {{ avis.note }} sur 5">
+                                {{ avis.note }}/5
+                            </p>
+
+                            <p class="card-text">
+                                {{ avis.commentaire }}
+                            </p>
+
+                            <p class="small text-muted mb-0">
+                                Avis publié le
+                                {{ avis.dateCreation|date('d/m/Y') }}
+                            </p>
+
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-muted mb-0">
+            Aucun avis client n'est encore publié.
+        </p>
+    {% endif %}
+</section>
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions légales - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <h1 class="mb-4">Mentions légales</h1>
+
+            <section class="mb-4">
+                <h2 class="h4">Éditeur du site</h2>
+
+                <p>
+                    Le présent site concerne l'entreprise
+                    <strong>Vite & Gourmand</strong>,
+                    entreprise de service traiteur située à Bordeaux.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h2 class="h4">Objet du site</h2>
+
+                <p>
+                    Le site Vite & Gourmand permet notamment de consulter
+                    les menus proposés par l'entreprise, de passer des
+                    commandes et de contacter l'entreprise.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h2 class="h4">Données personnelles</h2>
+
+                <p>
+                    Les informations saisies dans l'application sont utilisées
+                    uniquement dans le cadre des fonctionnalités proposées,
+                    notamment la gestion des comptes, des commandes et des
+                    demandes de contact.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h2 class="h4">Contact</h2>
+
+                <p>
+                    Pour toute demande concernant le site ou les données
+                    utilisées par l'application, vous pouvez contacter
+                    Vite & Gourmand à l'aide du formulaire prévu à cet effet.
+                </p>
+
+                <a class="btn btn-primary"
+                   href="{{ path('app_contact') }}">
+                    Nous contacter
+                </a>
+            </section>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
