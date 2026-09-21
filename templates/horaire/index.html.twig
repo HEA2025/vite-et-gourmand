@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des horaires - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h1>Gestion des horaires</h1>
+        <p class="text-muted">
+            Les horaires enregistrés ici sont affichés dans le pied de page du site.
+        </p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Jour</th>
+                    <th scope="col">Ouverture</th>
+                    <th scope="col">Fermeture</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for horaire in horaires %}
+                    <tr>
+                        <th scope="row">{{ horaire.jour }}</th>
+                        <td>{{ horaire.heureOuverture|date('H:i') }}</td>
+                        <td>{{ horaire.heureFermeture|date('H:i') }}</td>
+                        <td>
+                            <a class="btn btn-outline-primary btn-sm"
+                               href="{{ path('app_horaire_edit', {id: horaire.id}) }}">
+                                Modifier
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">
+                            Aucun horaire enregistré.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

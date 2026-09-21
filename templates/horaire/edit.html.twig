@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ horaire.jour }} - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h1 class="mb-4">
+                Modifier les horaires du {{ horaire.jour }}
+            </h1>
+
+            {{ form_start(form) }}
+
+                {{ form_row(form.heureOuverture, {
+                    attr: {class: 'form-control'}
+                }) }}
+
+                {{ form_row(form.heureFermeture, {
+                    attr: {class: 'form-control'}
+                }) }}
+
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-primary" type="submit">
+                        Enregistrer
+                    </button>
+
+                    <a class="btn btn-outline-secondary"
+                       href="{{ path('app_horaire_index') }}">
+                        Annuler
+                    </a>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

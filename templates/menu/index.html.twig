@@ -3,106 +3,169 @@
 {% block title %}Nos menus - Vite & Gourmand{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container py-4 py-lg-5">
 
-    <h1>Nos menus</h1>
+    <header class="mb-4">
+        <h1 class="mb-2">Nos menus</h1>
+        <p class="lead mb-0">
+            Découvrez nos menus et utilisez les filtres pour trouver celui qui correspond à vos besoins.
+        </p>
+    </header>
 
-    <div class="mb-4">
-        <label for="filtre-theme">Thème :</label>
-        <select id="filtre-theme">
-            <option value="">Tous les thèmes</option>
+    {# Les filtres possèdent tous un label associé pour rester accessibles. #}
+    <section class="card mb-5" aria-labelledby="titre-filtres">
+        <div class="card-body">
+            <h2 id="titre-filtres" class="h4 mb-4">Filtrer les menus</h2>
 
-            {% for theme in themes %}
-                <option value="{{ theme.id }}">
-                    {{ theme.nom }}
-                </option>
-            {% endfor %}
-        </select>
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="filtre-theme" class="form-label">Thème</label>
+                    <select id="filtre-theme" class="form-select">
+                        <option value="">Tous les thèmes</option>
 
-        <label for="filtre-regime">Régime :</label>
-        <select id="filtre-regime">
-            <option value="">Tous les régimes</option>
+                        {% for theme in themes %}
+                            <option value="{{ theme.id }}">
+                                {{ theme.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            {% for regime in regimes %}
-                <option value="{{ regime.id }}">
-                    {{ regime.nom }}
-                </option>
-            {% endfor %}
-        </select>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="filtre-regime" class="form-label">Régime</label>
+                    <select id="filtre-regime" class="form-select">
+                        <option value="">Tous les régimes</option>
 
-        <label for="filtre-prix-min">Prix min :</label>
-        <input type="number" id="filtre-prix-min" min="0">
+                        {% for regime in regimes %}
+                            <option value="{{ regime.id }}">
+                                {{ regime.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-        <label for="filtre-prix-max">Prix max :</label>
-        <input type="number" id="filtre-prix-max" min="0">
+                <div class="col-6 col-lg-2">
+                    <label for="filtre-prix-min" class="form-label">
+                        Prix min.
+                    </label>
+                    <input
+                        type="number"
+                        id="filtre-prix-min"
+                        class="form-control"
+                        min="0"
+                        step="1"
+                        inputmode="decimal"
+                    >
+                </div>
 
-        <label for="filtre-personnes">Nombre de personnes :</label>
-        <input type="number" id="filtre-personnes" min="1">
+                <div class="col-6 col-lg-2">
+                    <label for="filtre-prix-max" class="form-label">
+                        Prix max.
+                    </label>
+                    <input
+                        type="number"
+                        id="filtre-prix-max"
+                        class="form-control"
+                        min="0"
+                        step="1"
+                        inputmode="decimal"
+                    >
+                </div>
 
-    </div>
+                <div class="col-12 col-lg-2">
+                    <label for="filtre-personnes" class="form-label">
+                        Personnes
+                    </label>
+                    <input
+                        type="number"
+                        id="filtre-personnes"
+                        class="form-control"
+                        min="1"
+                        step="1"
+                        inputmode="numeric"
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <div id="liste-menus">
+    {#
+        aria-live permet aux technologies d'assistance d'être informées
+        lorsque les résultats sont remplacés par le filtre AJAX.
+    #}
+    <section
+        id="liste-menus"
+        aria-live="polite"
+        aria-busy="false"
+        aria-label="Résultats des menus"
+    >
         {% if menus is empty %}
-            <p>Aucun menu n'est disponible pour le moment.</p>
+            <div class="alert alert-info" role="status">
+                Aucun menu n'est actuellement disponible.
+            </div>
         {% else %}
-            <div class="row">
-
+            <div class="row g-4">
                 {% for menu in menus %}
-                    <div class="col-md-6 mb-4">
-
-                        <div class="card h-100">
-                            <div class="card-body">
-
-                                <h2 class="card-title">
+                    <div class="col-12 col-md-6">
+                        <article class="card h-100">
+                            <div class="card-body d-flex flex-column">
+                                <h2 class="h3 card-title">
                                     {{ menu.titre }}
                                 </h2>
 
-                                <p>{{ menu.description }}</p>
-
-                                <p>
-                                    <strong>Thème :</strong>
-                                    {{ menu.theme.nom }}
+                                <p class="card-text">
+                                    {{ menu.description }}
                                 </p>
 
-                                <p>
-                                    <strong>Régime :</strong>
-                                    {{ menu.regime.nom }}
-                                </p>
+                                <dl class="row mb-4">
+                                    <dt class="col-5">Thème</dt>
+                                    <dd class="col-7">{{ menu.theme.nom }}</dd>
 
-                                <p>
-                                    <strong>À partir de :</strong>
-                                    {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
-                                </p>
+                                    <dt class="col-5">Régime</dt>
+                                    <dd class="col-7">{{ menu.regime.nom }}</dd>
 
-                                <p>
-                                    <strong>Minimum :</strong>
-                                    {{ menu.nombreMinimumPersonnes }} personnes
-                                </p>
+                                    <dt class="col-5">À partir de</dt>
+                                    <dd class="col-7">
+                                        {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                                    </dd>
 
-                                <p>
-                                    <strong>Stock :</strong>
-                                    {{ menu.stock }}
-                                </p>
+                                    <dt class="col-5">Minimum</dt>
+                                    <dd class="col-7">
+                                        {{ menu.nombreMinimumPersonnes }} personnes
+                                    </dd>
 
-                                <p>
-                                    <a href="{{ path('app_menu_show', {'id': menu.id}) }}">
+                                    <dt class="col-5">Stock</dt>
+                                    <dd class="col-7">
+                                        {% if menu.stock > 0 %}
+                                            {{ menu.stock }}
+                                        {% else %}
+                                            Indisponible
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+
+                                <div class="mt-auto">
+                                    <a
+                                        href="{{ path('app_menu_show', {'id': menu.id}) }}"
+                                        class="btn btn-primary"
+                                    >
                                         Voir le menu
                                     </a>
-                                </p>
-
+                                </div>
                             </div>
-                        </div>
-
+                        </article>
                     </div>
                 {% endfor %}
-
             </div>
         {% endif %}
-    </div>
+    </section>
 
 </div>
 {% endblock %}
 
 {% block javascripts %}
-    <script src="/js/menus.js" defer></script>
+    {{ parent() }}
+
+    {# Le filtrage AJAX est géré dans un fichier JavaScript séparé. #}
+    <script src="{{ asset('js/menus.js') }}" defer></script>
 {% endblock %}

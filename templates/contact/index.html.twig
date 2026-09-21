@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <h1 class="mb-3">Contact</h1>
+
+            <p class="text-muted mb-4">
+                Une question concernant nos services ?
+                Envoyez-nous votre demande avec ce formulaire.
+            </p>
+
+            {{ form_start(form) }}
+
+                {{ form_row(form.titre, {
+                    attr: {class: 'form-control'}
+                }) }}
+
+                {{ form_row(form.description, {
+                    attr: {class: 'form-control'}
+                }) }}
+
+                {{ form_row(form.email, {
+                    attr: {class: 'form-control'}
+                }) }}
+
+                <button class="btn btn-primary mt-3" type="submit">
+                    Envoyer
+                </button>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

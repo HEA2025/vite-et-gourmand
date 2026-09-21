@@ -3,101 +3,144 @@
 {% block title %}{{ menu.titre }} - Vite & Gourmand{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container py-4 py-lg-5">
 
-    <h1>{{ menu.titre }}</h1>
-
-    <p>{{ menu.description }}</p>
-
-    <p><strong>Thème :</strong> {{ menu.theme.nom }}</p>
-    <p><strong>Régime :</strong> {{ menu.regime.nom }}</p>
-
-    <p>
-        <strong>Prix :</strong>
-        {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
-    </p>
-
-    <p>
-        <strong>Nombre minimum de personnes :</strong>
-        {{ menu.nombreMinimumPersonnes }}
-    </p>
-
-    <p>
-        <strong>Stock :</strong>
-        {{ menu.stock }}
-    </p>
-
-    {# Les conditions du menu doivent être clairement visibles avant la commande. #}
-    <div class="alert alert-warning">
-        <strong>Conditions du menu :</strong>
-        {{ menu.conditions }}
-    </div>
-
-    <h2>Galerie d'images</h2>
-
-    <div>
-        {% for image in menu.imageMenus %}
-            <img
-                src="/images/menus/{{ image.nomFichier }}"
-                alt="{{ menu.titre }}"
-                width="300"
-            >
-        {% else %}
-            <p>Aucune image pour ce menu.</p>
-        {% endfor %}
-    </div>
-
-    <h2>Composition du menu</h2>
-
-    {% for plat in menu.plats %}
-        <div>
-            <h3>{{ plat.nom }}</h3>
-
-            <p>
-                <strong>Type :</strong>
-                {{ plat.type }}
-            </p>
-
-            <p>{{ plat.description }}</p>
-
-            <p>
-                <strong>Allergènes :</strong>
-
-                {% if plat.allergenes is empty %}
-                    Aucun
-                {% else %}
-                    {% for allergene in plat.allergenes %}
-                        {{ allergene.nom }}{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                {% endif %}
-            </p>
-        </div>
-    {% else %}
-        <p>Aucun plat dans ce menu.</p>
-    {% endfor %}
-
-    <hr>
-
-    {# Le menu est transmis dans l'URL pour préremplir la commande. #}
-    {% if menu.stock > 0 %}
-        <a
-            href="{{ path('app_commande_new', {'id': menu.id}) }}"
-            class="btn btn-primary"
-        >
-            Commander ce menu
+    <nav aria-label="Fil d'Ariane" class="mb-3">
+        <a href="{{ path('app_menu_index') }}">
+            Nos menus
         </a>
-    {% else %}
-        <p>
-            <strong>Ce menu n'est actuellement plus disponible.</strong>
-        </p>
-    {% endif %}
+        <span aria-hidden="true"> / </span>
+        <span aria-current="page">{{ menu.titre }}</span>
+    </nav>
 
-    <a
-        href="{{ path('app_menu_index') }}"
-        class="btn btn-outline-secondary"
-    >
-        Retour aux menus
-    </a>
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-lg-7">
+            <h1>{{ menu.titre }}</h1>
+
+            <p class="lead">
+                {{ menu.description }}
+            </p>
+
+            <dl class="row menu-details">
+                <dt class="col-sm-5">Thème</dt>
+                <dd class="col-sm-7">{{ menu.theme.nom }}</dd>
+
+                <dt class="col-sm-5">Régime</dt>
+                <dd class="col-sm-7">{{ menu.regime.nom }}</dd>
+
+                <dt class="col-sm-5">Prix</dt>
+                <dd class="col-sm-7">
+                    {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                </dd>
+
+                <dt class="col-sm-5">Nombre minimum</dt>
+                <dd class="col-sm-7">
+                    {{ menu.nombreMinimumPersonnes }} personnes
+                </dd>
+
+                <dt class="col-sm-5">Stock disponible</dt>
+                <dd class="col-sm-7">
+                    {% if menu.stock > 0 %}
+                        {{ menu.stock }}
+                    {% else %}
+                        Indisponible
+                    {% endif %}
+                </dd>
+            </dl>
+
+            {# Les conditions doivent être visibles avant la commande. #}
+            <div class="alert alert-warning" role="note">
+                <h2 class="h5 alert-heading">Conditions du menu</h2>
+                <p class="mb-0">{{ menu.conditions }}</p>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <section aria-labelledby="titre-galerie">
+                <h2 id="titre-galerie" class="h3">Galerie</h2>
+
+                {% if menu.imageMenus is empty %}
+                    <p>Aucune image pour ce menu.</p>
+                {% else %}
+                    <div class="row g-3">
+                        {% for image in menu.imageMenus %}
+                            <div class="col-12">
+                                <img
+                                    src="{{ asset('images/menus/' ~ image.nomFichier) }}"
+                                    alt="Présentation du menu {{ menu.titre }}"
+                                    class="img-fluid rounded menu-image"
+                                >
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+
+    <section aria-labelledby="titre-composition" class="mb-5">
+        <h2 id="titre-composition">Composition du menu</h2>
+
+        {% if menu.plats is empty %}
+            <p>Aucun plat dans ce menu.</p>
+        {% else %}
+            <div class="row g-4">
+                {% for plat in menu.plats %}
+                    <div class="col-12 col-md-6">
+                        <article class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h4 card-title">
+                                    {{ plat.nom }}
+                                </h3>
+
+                                <p>
+                                    <span class="fw-bold">Type :</span>
+                                    {{ plat.type }}
+                                </p>
+
+                                <p>{{ plat.description }}</p>
+
+                                <p class="mb-0">
+                                    <span class="fw-bold">Allergènes :</span>
+
+                                    {% if plat.allergenes is empty %}
+                                        Aucun
+                                    {% else %}
+                                        {% for allergene in plat.allergenes %}
+                                            {{ allergene.nom }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="d-flex flex-column flex-sm-row gap-2">
+        {# Une commande n'est possible que si le menu possède encore du stock. #}
+        {% if menu.stock > 0 %}
+            <a
+                href="{{ path('app_commande_new', {'id': menu.id}) }}"
+                class="btn btn-primary"
+            >
+                Commander ce menu
+            </a>
+        {% else %}
+            <p class="alert alert-danger mb-0" role="status">
+                Ce menu n'est actuellement plus disponible.
+            </p>
+        {% endif %}
+
+        <a
+            href="{{ path('app_menu_index') }}"
+            class="btn btn-outline-secondary"
+        >
+            Retour aux menus
+        </a>
+    </div>
 
 </div>
 {% endblock %}

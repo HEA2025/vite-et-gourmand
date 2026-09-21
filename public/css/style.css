@@ -1,0 +1,144 @@
+/*
+ * Charte graphique commune de Vite & Gourmand.
+ * Le site est conçu en mobile first puis adapté aux écrans plus larges.
+ */
+
+:root {
+    --vg-primary: #244d3b;
+    --vg-primary-dark: #18372a;
+    --vg-background: #faf8f3;
+    --vg-surface: #ffffff;
+    --vg-accent: #d8b56d;
+    --vg-text: #252525;
+    --vg-muted: #626262;
+    --vg-border: #ded8cc;
+}
+
+body {
+    background-color: var(--vg-background);
+    color: var(--vg-text);
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+}
+
+/* Rend la navigation identifiable sur toutes les pages. */
+.main-navbar {
+    background-color: var(--vg-primary-dark);
+}
+
+.navbar-brand {
+    letter-spacing: 0.03em;
+}
+
+.navbar .nav-link {
+    color: #ffffff;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: #f4dfae;
+}
+
+/*
+ * Le lien d'évitement reste invisible jusqu'à ce qu'un utilisateur
+ * naviguant au clavier lui donne le focus.
+ */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 1rem;
+    z-index: 2000;
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    color: var(--vg-primary-dark);
+    border: 2px solid var(--vg-primary-dark);
+}
+
+.skip-link:focus {
+    top: 1rem;
+}
+
+/* Un focus visible est indispensable pour la navigation au clavier. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--vg-accent);
+    outline-offset: 3px;
+}
+
+main {
+    padding-bottom: 2rem;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--vg-primary-dark);
+}
+
+h1 {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+a {
+    color: #1d5a43;
+}
+
+a:hover {
+    color: var(--vg-primary-dark);
+}
+
+/* Harmonise les boutons principaux avec la charte du site. */
+.btn-primary {
+    --bs-btn-bg: var(--vg-primary);
+    --bs-btn-border-color: var(--vg-primary);
+    --bs-btn-hover-bg: var(--vg-primary-dark);
+    --bs-btn-hover-border-color: var(--vg-primary-dark);
+    --bs-btn-active-bg: var(--vg-primary-dark);
+    --bs-btn-active-border-color: var(--vg-primary-dark);
+}
+
+.card {
+    border-color: var(--vg-border);
+    box-shadow: 0 0.15rem 0.6rem rgba(0, 0, 0, 0.06);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--vg-primary);
+    box-shadow: 0 0 0 0.2rem rgba(36, 77, 59, 0.2);
+}
+
+/* Empêche les images de dépasser de leur conteneur sur mobile. */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+}
+
+.site-footer {
+    background-color: var(--vg-primary-dark);
+    color: #ffffff;
+}
+
+.site-footer .footer-title {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.site-footer hr {
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Sur desktop, le contenu conserve une largeur confortable à lire. */
+@media (min-width: 992px) {
+    main > .container {
+        padding-top: 1rem;
+    }
+}

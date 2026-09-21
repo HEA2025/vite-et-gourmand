@@ -1,23 +1,244 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
 
-        {% block javascripts %}
-        {% endblock %}
+    {# Permet un affichage responsive correct sur mobile. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+    <title>{% block title %}Vite & Gourmand{% endblock %}</title>
+
+    {# Bootstrap fournit la grille responsive et les composants principaux. #}
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    {# Feuille de style commune à toute l'application. #}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    {% block stylesheets %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+{# Permet aux utilisateurs au clavier d'accéder directement au contenu. #}
+<a class="skip-link" href="#contenu-principal">
+    Aller au contenu principal
+</a>
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark main-navbar"
+         aria-label="Navigation principale">
+
+        <div class="container">
+
+            <a class="navbar-brand fw-bold"
+               href="{{ path('app_menu_index') }}">
+                Vite & Gourmand
+            </a>
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navigationPrincipale"
+                    aria-controls="navigationPrincipale"
+                    aria-expanded="false"
+                    aria-label="Afficher ou masquer la navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse"
+                 id="navigationPrincipale">
+
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{{ path('app_menu_index') }}">
+                            Nos menus
+                        </a>
+                    </li>
+
+                    {% if app.user %}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_commande_index') }}">
+                                Mes commandes
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_EMPLOYE') %}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_employe_commande_index') }}">
+                                Commandes clients
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_employe_avis_index') }}">
+                                Avis
+                            </a>
+                        </li>
+
+                        {# Employés et administrateurs peuvent gérer les horaires. #}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_horaire_index') }}">
+                                Horaires
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMINISTRATEUR') %}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_admin') }}">
+                                Administration
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {#
+                        L'énoncé demande que la page Contact soit accessible
+                        depuis le menu applicatif.
+                    #}
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{{ path('app_contact') }}">
+                            Contact
+                        </a>
+                    </li>
+
+                </ul>
+
+                {#
+                    Sur mobile, la zone utilisateur est centrée.
+                    Sur desktop, elle revient naturellement à droite.
+                #}
+                <div class="d-flex flex-column flex-lg-row
+                            align-items-center gap-2">
+
+                    {% if app.user %}
+                        <span class="navbar-text me-lg-2">
+                            {{ app.user.prenom }}
+                        </span>
+
+                        <a class="btn btn-outline-light btn-sm"
+                           href="{{ path('app_logout') }}">
+                            Déconnexion
+                        </a>
+                    {% else %}
+                        <a class="btn btn-outline-light btn-sm"
+                           href="{{ path('app_login') }}">
+                            Connexion
+                        </a>
+
+                        <a class="btn btn-light btn-sm"
+                           href="{{ path('app_register') }}">
+                            Inscription
+                        </a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main id="contenu-principal"
+      class="flex-grow-1"
+      tabindex="-1">
+
+    {# Affiche les retours après les actions de l'utilisateur. #}
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="container mt-3">
+                <div class="alert alert-{{ type == 'error' ? 'danger' : type }}"
+                     role="status">
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% block body %}{% endblock %}
+
+</main>
+
+<footer class="site-footer mt-auto">
+    <div class="container py-4">
+
+        <div class="row gy-4 align-items-start">
+
+            <div class="col-lg-4">
+                <p class="footer-title mb-2">
+                    Vite & Gourmand
+                </p>
+
+                <p>
+                    Service traiteur pour vos repas et événements.
+                </p>
+
+                {# Les liens clairs restent lisibles sur le fond sombre. #}
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <a class="link-light"
+                       href="{{ path('app_contact') }}">
+                        Contact
+                    </a>
+
+                    <a class="link-light"
+                       href="{{ path('app_cgv') }}">
+                        Conditions générales de vente
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+
+                {#
+                    Le footer est commun à toutes les pages.
+                    Le fragment centralise la récupération des horaires.
+                #}
+                {{ render(controller(
+                    'App\\Controller\\FooterController::horaires'
+                )) }}
+
+            </div>
+        </div>
+
+        <hr>
+
+        <p class="small text-center mb-0">
+            &copy; {{ "now"|date("Y") }} Vite & Gourmand
+        </p>
+
+    </div>
+</footer>
+
+{# Bootstrap gère notamment le menu responsive mobile. #}
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+</script>
+
+{% block javascripts %}{% endblock %}
+
+{% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
+
+{% if frankenphp_hot_reload %}
+    <meta name="frankenphp-hot-reload:url"
+          content="{{ frankenphp_hot_reload }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm"
+        type="module">
+    </script>
+{% endif %}
+
+</body>
 </html>

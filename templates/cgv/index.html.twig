@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Conditions générales de vente - Vite & Gourmand
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <h1 class="mb-4">Conditions générales de vente</h1>
+
+            <p class="text-muted">
+                Les présentes conditions concernent les commandes réalisées
+                auprès du service traiteur Vite & Gourmand.
+            </p>
+
+            <section class="mb-4">
+                <h2 class="h4">Commandes</h2>
+
+                <p>
+                    Le détail du prix de la commande est présenté au client
+                    avant sa validation, notamment le prix du menu et les
+                    éventuels frais de livraison.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h2 class="h4">Matériel prêté</h2>
+
+                <p>
+                    Lorsqu'un matériel est prêté dans le cadre d'une commande,
+                    il doit être restitué après la livraison selon les
+                    indications communiquées au client.
+                </p>
+
+                {#
+                    Cette règle métier est explicitement prévue
+                    dans l'énoncé du projet.
+                #}
+                <p>
+                    Si le matériel n'est pas restitué dans un délai de
+                    <strong>10 jours ouvrés</strong>, le client devra
+                    s'acquitter de <strong>600 € de frais</strong>.
+                </p>
+
+                <p>
+                    Pour organiser la restitution du matériel, le client
+                    doit prendre contact avec Vite & Gourmand.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h2 class="h4">Contact</h2>
+
+                <p>
+                    Pour toute question concernant une commande ou la
+                    restitution de matériel, le client peut utiliser
+                    le formulaire de contact.
+                </p>
+
+                <a class="btn btn-primary"
+                   href="{{ path('app_contact') }}">
+                    Nous contacter
+                </a>
+            </section>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

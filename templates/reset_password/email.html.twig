@@ -1,9 +1,32 @@
-<h1>Hi!</h1>
+<h1>Réinitialisation de votre mot de passe</h1>
 
-<p>To reset your password, please visit the following link</p>
+<p>
+    Vous avez demandé à modifier le mot de passe de votre compte
+    Vite & Gourmand.
+</p>
 
-<a href="{{ url('app_reset_password', {token: resetToken.token}) }}">{{ url('app_reset_password', {token: resetToken.token}) }}</a>
+<p>
+    Cliquez sur le lien suivant pour choisir un nouveau mot de passe :
+</p>
 
-<p>This link will expire in {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.</p>
+<p>
+    <a href="{{ url('app_reset_password', {token: resetToken.token}) }}">
+        Réinitialiser mon mot de passe
+    </a>
+</p>
 
-<p>Cheers!</p>
+<p>
+    Ce lien expirera dans
+    {{ resetToken.expirationMessageKey|trans(
+        resetToken.expirationMessageData,
+        'ResetPasswordBundle'
+    ) }}.
+</p>
+
+<p>
+    Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.
+</p>
+
+<p>
+    L'équipe Vite & Gourmand
+</p>

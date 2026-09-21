@@ -1,0 +1,19 @@
+{# Affiche les horaires enregistrés dans la base de données. #}
+<p class="footer-title mb-2">Horaires d'ouverture</p>
+
+{% if horaires %}
+    <div class="row">
+        {% for horaire in horaires %}
+            <div class="col-sm-6 mb-1">
+                <strong>{{ horaire.jour }}</strong> :
+                {{ horaire.heureOuverture|date('H:i') }}
+                -
+                {{ horaire.heureFermeture|date('H:i') }}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="mb-0">
+        Horaires bientôt disponibles.
+    </p>
+{% endif %}
