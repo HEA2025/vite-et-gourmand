@@ -1,72 +1,95 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Administration des plats - Vite & Gourmand{% endblock %}
+{% block title %}Gestion des plats - Vite & Gourmand{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container py-4">
 
-    <h1>Administration des plats</h1>
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center
+                gap-3 mb-4">
 
-    <p>
-        <a href="{{ path('app_admin_plat_new') }}">
+        <h1 class="mb-0">Gestion des plats</h1>
+
+        <a class="btn btn-success"
+           href="{{ path('app_admin_plat_new') }}">
             Ajouter un plat
         </a>
-    </p>
+    </div>
 
     {% if plats is empty %}
-        <p>Aucun plat enregistré.</p>
+        <div class="alert alert-info" role="status">
+            Aucun plat enregistré.
+        </div>
     {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Type</th>
-                    <th>Allergènes</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                {% for plat in plats %}
+        {#
+            Le conteneur responsive permet de conserver un tableau lisible
+            sur les petits écrans sans faire déborder toute la page.
+        #}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
                     <tr>
-                        <td>{{ plat.nom }}</td>
-                        <td>{{ plat.type }}</td>
-
-                        <td>
-                            {% if plat.allergenes is empty %}
-                                Aucun
-                            {% else %}
-                                {% for allergene in plat.allergenes %}
-                                    {{ allergene.nom }}{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            <a href="{{ path('app_admin_plat_edit', {'id': plat.id}) }}">
-                                Modifier
-                            </a>
-
-                            <form
-                                method="post"
-                                action="{{ path('app_admin_plat_delete', {'id': plat.id}) }}"
-                                style="display: inline;"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="_token"
-                                    value="{{ csrf_token('delete_plat_' ~ plat.id) }}"
-                                >
-
-                                <button type="submit">
-                                    Supprimer
-                                </button>
-                            </form>
-                        </td>
+                        <th scope="col">Nom</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Allergènes</th>
+                        <th scope="col">Actions</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                    {% for plat in plats %}
+                        <tr>
+                            <td>{{ plat.nom }}</td>
+
+                            <td>{{ plat.type }}</td>
+
+                            <td>
+                                {% if plat.allergenes is empty %}
+                                    Aucun
+                                {% else %}
+                                    {% for allergene in plat.allergenes %}
+                                        {{ allergene.nom }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {#
+                                    Les boutons peuvent revenir à la ligne
+                                    lorsque l'espace disponible diminue.
+                                #}
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-outline-success btn-sm"
+                                       href="{{ path('app_admin_plat_edit', {'id': plat.id}) }}">
+                                        Modifier
+                                    </a>
+
+                                    <form
+                                        method="post"
+                                        action="{{ path('app_admin_plat_delete', {'id': plat.id}) }}"
+                                        onsubmit="return confirm('Supprimer ce plat ?');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="_token"
+                                            value="{{ csrf_token('delete_plat_' ~ plat.id) }}"
+                                        >
+
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                type="submit">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     {% endif %}
 
 </div>

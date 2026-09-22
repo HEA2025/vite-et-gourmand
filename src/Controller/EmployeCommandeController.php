@@ -17,6 +17,9 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/employe/commandes')]
 class EmployeCommandeController extends AbstractController
 {
+    /**
+     * Affiche les commandes et permet de les filtrer.
+     */
     #[Route('', name: 'app_employe_commande_index', methods: ['GET'])]
     public function index(
         CommandeRepository $commandeRepository,
@@ -46,6 +49,9 @@ class EmployeCommandeController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche le détail d'une commande pour l'employé.
+     */
     #[Route(
         '/{id}',
         name: 'app_employe_commande_show',
@@ -62,6 +68,10 @@ class EmployeCommandeController extends AbstractController
         ]);
     }
 
+    /**
+     * Permet à l'employé de modifier une commande.
+     * Le contact préalable avec le client reste obligatoire.
+     */
     #[Route(
         '/{id}/modifier',
         name: 'app_employe_commande_edit',
@@ -106,6 +116,7 @@ class EmployeCommandeController extends AbstractController
                 );
             }
 
+            // Le nombre de personnes doit toujours respecter le minimum du menu.
             if (!$this->verifierNombreMinimum($commande)) {
                 $this->addFlash(
                     'danger',
@@ -121,6 +132,10 @@ class EmployeCommandeController extends AbstractController
                 );
             }
 
+            /*
+             * Le prix est recalculé côté serveur après modification.
+             * Une modification ne change pas le stock déjà réservé.
+             */
             $this->calculerPrix($commande);
 
             // Conserve la preuve du contact avec le client.
@@ -147,6 +162,10 @@ class EmployeCommandeController extends AbstractController
         ]);
     }
 
+    /**
+     * Annule une commande après contact avec le client.
+     * L'unité de stock réservée est alors rendue au menu.
+     */
     #[Route(
         '/{id}/annuler',
         name: 'app_employe_commande_cancel',
@@ -160,12 +179,29 @@ class EmployeCommandeController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
 
+        // Protège l'annulation contre les requêtes CSRF.
         if (!$this->isCsrfTokenValid(
             'annuler_employe_' . $commande->getId(),
             (string) $request->request->get('_token')
         )) {
             throw $this->createAccessDeniedException(
                 'Jeton CSRF invalide.'
+            );
+        }
+
+        /*
+         * Une commande déjà annulée ne doit pas être annulée une seconde fois.
+         * Cela évite notamment de restituer plusieurs fois la même unité de stock.
+         */
+        if ($this->getStatutActuel($commande) === 'annulée') {
+            $this->addFlash(
+                'danger',
+                'Cette commande est déjà annulée.'
+            );
+
+            return $this->redirectToRoute(
+                'app_employe_commande_show',
+                ['id' => $commande->getId()]
             );
         }
 
@@ -193,17 +229,29 @@ class EmployeCommandeController extends AbstractController
             );
         }
 
+        // Conserve la preuve du contact et le motif de l'annulation.
         $commande->setMoyenContactEmploye($moyenContact);
         $commande->setMotifInterventionEmploye($motif);
         $commande->setDateContactEmploye(new \DateTimeImmutable());
 
-        // L'annulation est conservée dans l'historique.
+        // L'annulation reste enregistrée dans l'historique de la commande.
         $this->ajouterStatut(
             $commande,
             'annulée',
             $entityManager
         );
 
+        /*
+         * Une commande avait consommé une disponibilité lors de sa création.
+         * Son annulation rend donc une unité au stock du menu.
+         */
+        $menu = $commande->getMenu();
+
+        if ($menu !== null) {
+            $menu->setStock(($menu->getStock() ?? 0) + 1);
+        }
+
+        // Doctrine enregistre ensemble l'annulation, le contact et le stock.
         $entityManager->flush();
 
         $this->addFlash(
@@ -217,6 +265,9 @@ class EmployeCommandeController extends AbstractController
         );
     }
 
+    /**
+     * Modifie le statut d'une commande et conserve son historique.
+     */
     #[Route(
         '/{id}/statut',
         name: 'app_employe_commande_statut',
@@ -231,6 +282,7 @@ class EmployeCommandeController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
 
+        // Protège le changement de statut contre les requêtes CSRF.
         if (!$this->isCsrfTokenValid(
             'statut_commande_' . $commande->getId(),
             (string) $request->request->get('_token')
@@ -242,6 +294,7 @@ class EmployeCommandeController extends AbstractController
 
         $nouveauStatut = (string) $request->request->get('statut');
 
+        // Seuls les statuts prévus par le parcours métier sont autorisés.
         $statutsAutorises = [
             'acceptée',
             'en préparation',
@@ -260,6 +313,20 @@ class EmployeCommandeController extends AbstractController
             );
         }
 
+        // Une commande annulée ne doit plus reprendre son parcours normal.
+        if ($this->getStatutActuel($commande) === 'annulée') {
+            $this->addFlash(
+                'danger',
+                'Une commande annulée ne peut plus changer de statut.'
+            );
+
+            return $this->redirectToRoute(
+                'app_employe_commande_show',
+                ['id' => $commande->getId()]
+            );
+        }
+
+        // Évite d'ajouter deux fois de suite le même statut à l'historique.
         if ($this->getStatutActuel($commande) === $nouveauStatut) {
             $this->addFlash(
                 'danger',
@@ -328,7 +395,9 @@ class EmployeCommandeController extends AbstractController
         );
     }
 
-    // Ajoute un état daté sans écraser l'historique précédent.
+    /**
+     * Ajoute un nouveau statut daté sans supprimer l'historique précédent.
+     */
     private function ajouterStatut(
         Commande $commande,
         string $statut,
@@ -342,6 +411,9 @@ class EmployeCommandeController extends AbstractController
         $entityManager->persist($historique);
     }
 
+    /**
+     * Retourne le dernier statut enregistré pour la commande.
+     */
     private function getStatutActuel(Commande $commande): string
     {
         $dernierHistorique = null;
@@ -359,44 +431,89 @@ class EmployeCommandeController extends AbstractController
         return $dernierHistorique?->getStatut() ?? 'en attente';
     }
 
+    /**
+     * Vérifie que le nombre de personnes respecte le minimum du menu.
+     */
     private function verifierNombreMinimum(Commande $commande): bool
     {
-        return $commande->getNombrePersonnes()
-            >= $commande->getMenu()->getNombreMinimumPersonnes();
+        $menu = $commande->getMenu();
+
+        return $menu !== null
+            && $commande->getNombrePersonnes() !== null
+            && $commande->getNombrePersonnes()
+                >= $menu->getNombreMinimumPersonnes();
     }
 
-    // Recalcule toujours le prix côté serveur.
+    /**
+     * Recalcule le prix définitif côté serveur.
+     *
+     * Le même calcul est utilisé que pour la création côté client :
+     * prix selon le nombre de personnes, réduction et frais de livraison.
+     */
     private function calculerPrix(Commande $commande): void
     {
         $menu = $commande->getMenu();
 
-        $prixMenu = (float) $menu->getPrixMinimum();
+        // Une commande doit toujours être liée à un menu.
+        if ($menu === null) {
+            throw new \LogicException(
+                'Impossible de calculer le prix sans menu.'
+            );
+        }
+
+        $nombrePersonnes = $commande->getNombrePersonnes() ?? 0;
+        $nombreMinimum = $menu->getNombreMinimumPersonnes() ?? 0;
+        $prixMinimum = (float) $menu->getPrixMinimum();
+
+        // Empêche une division par zéro en cas de donnée incorrecte.
+        if ($nombreMinimum <= 0) {
+            throw new \LogicException(
+                'Le nombre minimum de personnes du menu doit être supérieur à zéro.'
+            );
+        }
+
+        // Le prix minimum correspond au nombre minimum de personnes.
+        $prixParPersonne = $prixMinimum / $nombreMinimum;
+        $prixMenu = $prixParPersonne * $nombrePersonnes;
+
         $reduction = 0.0;
 
-        if (
-            $commande->getNombrePersonnes()
-            >= $menu->getNombreMinimumPersonnes() + 5
-        ) {
+        // Applique 10 % à partir de 5 personnes au-dessus du minimum.
+        if ($nombrePersonnes >= ($nombreMinimum + 5)) {
             $reduction = $prixMenu * 0.10;
         }
 
-        $distance = max(
-            0,
-            $commande->getDistanceLivraison() ?? 0
+        $distanceLivraison = max(
+            0.0,
+            $commande->getDistanceLivraison() ?? 0.0
         );
 
-        $fraisLivraison = $distance > 0
-            ? 5 + (0.59 * $distance)
-            : 0;
+        // Une distance de 0 représente une livraison dans Bordeaux.
+        if ($distanceLivraison === 0.0) {
+            $fraisLivraison = 0.0;
+        } else {
+            $fraisLivraison = 5 + (0.59 * $distanceLivraison);
+        }
 
-        $total = $prixMenu - $reduction + $fraisLivraison;
+        $prixTotal = $prixMenu - $reduction + $fraisLivraison;
 
-        $commande->setDistanceLivraison($distance);
-        $commande->setPrixMenu(number_format($prixMenu, 2, '.', ''));
-        $commande->setReduction(number_format($reduction, 2, '.', ''));
+        $commande->setDistanceLivraison($distanceLivraison);
+
+        // Doctrine attend des chaînes pour les colonnes DECIMAL.
+        $commande->setPrixMenu(
+            number_format($prixMenu, 2, '.', '')
+        );
+
+        $commande->setReduction(
+            number_format($reduction, 2, '.', '')
+        );
+
         $commande->setFraisLivraison(
             number_format($fraisLivraison, 2, '.', '')
         );
-        $commande->setPrixTotal(number_format($total, 2, '.', ''));
+
+        $commande->setPrixTotal(
+            number_format($prixTotal, 2, '.', '')
+        );
     }
 }

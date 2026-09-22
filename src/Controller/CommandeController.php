@@ -21,7 +21,7 @@ class CommandeController extends AbstractController
 {
     /**
      * Crée une nouvelle commande à partir du menu sélectionné.
-     * Le prix définitif est toujours recalculé côté serveur.
+     * Le prix et le stock sont toujours contrôlés côté serveur.
      */
     #[Route(
         '/nouvelle/{id}',
@@ -42,7 +42,7 @@ class CommandeController extends AbstractController
 
         $commande = new Commande();
 
-        // Le menu provient de la page détaillée et n'est pas choisi dans le formulaire.
+        // Le menu vient de la page détaillée et ne peut pas être changé ici.
         $commande->setMenu($menu);
         $commande->setUtilisateur($utilisateur);
         $commande->setDateCreation(new \DateTimeImmutable());
@@ -66,8 +66,25 @@ class CommandeController extends AbstractController
                 ]);
             }
 
+            /*
+             * Le stock représente le nombre de commandes encore possibles.
+             * Une commande consomme donc une seule unité de stock,
+             * quel que soit le nombre de personnes.
+             */
+            if (($menu->getStock() ?? 0) <= 0) {
+                $this->addFlash(
+                    'danger',
+                    'Ce menu n’est actuellement plus disponible à la commande.'
+                );
+
+                return $this->render('commande/new.html.twig', [
+                    'form' => $form,
+                    'menu' => $menu,
+                ]);
+            }
+
             // Le calcul JavaScript n'est qu'un aperçu.
-            // Le vrai montant enregistré est toujours recalculé côté serveur.
+            // Le montant définitif est toujours recalculé côté serveur.
             $this->calculerPrix($commande);
 
             // Toute nouvelle commande commence avec le statut "en attente".
@@ -76,8 +93,16 @@ class CommandeController extends AbstractController
             $historique->setStatut('en attente');
             $historique->setDateModification(new \DateTimeImmutable());
 
+            // Une nouvelle commande réserve une disponibilité du menu.
+            $menu->setStock($menu->getStock() - 1);
+
             $entityManager->persist($commande);
             $entityManager->persist($historique);
+
+            /*
+             * Doctrine enregistre dans la même opération la commande,
+             * son historique et la nouvelle valeur du stock.
+             */
             $entityManager->flush();
 
             // Envoie une confirmation après l'enregistrement de la commande.
@@ -204,7 +229,7 @@ class CommandeController extends AbstractController
             );
         }
 
-        // CommandeType ne contient pas le menu : le client ne peut donc pas le changer.
+        // CommandeType ne contient pas le menu : le client ne peut pas le changer.
         $menu = $commande->getMenu();
 
         $form = $this->createForm(CommandeType::class, $commande);
@@ -225,7 +250,10 @@ class CommandeController extends AbstractController
                 ]);
             }
 
-            // Recalcule les montants après une modification.
+            /*
+             * Modifier une commande existante ne change pas le stock :
+             * cette commande avait déjà réservé une disponibilité.
+             */
             $this->calculerPrix($commande);
 
             $entityManager->flush();
@@ -249,7 +277,7 @@ class CommandeController extends AbstractController
 
     /**
      * Annule une commande tant qu'elle n'a pas encore été acceptée.
-     * La commande est conservée afin de garder une trace dans l'historique.
+     * La commande reste en base pour conserver son historique.
      */
     #[Route(
         '/{id}/annuler',
@@ -267,10 +295,14 @@ class CommandeController extends AbstractController
         // Empêche l'annulation de la commande d'un autre client.
         $this->verifierProprietaire($commande);
 
+        /*
+         * Seule une commande encore "en attente" peut être annulée
+         * par le client. Cela empêche aussi une double annulation.
+         */
         if (!$this->estModifiable($commande)) {
             $this->addFlash(
                 'danger',
-                'Cette commande ne peut plus être annulée car elle a déjà été acceptée.'
+                'Cette commande ne peut plus être annulée car elle a déjà été acceptée ou annulée.'
             );
 
             return $this->redirectToRoute(
@@ -296,6 +328,18 @@ class CommandeController extends AbstractController
         $historique->setDateModification(new \DateTimeImmutable());
 
         $entityManager->persist($historique);
+
+        /*
+         * La commande n'aura finalement pas lieu :
+         * sa disponibilité est rendue au menu.
+         */
+        $menu = $commande->getMenu();
+
+        if ($menu !== null) {
+            $menu->setStock(($menu->getStock() ?? 0) + 1);
+        }
+
+        // L'historique et le stock sont enregistrés ensemble.
         $entityManager->flush();
 
         $this->addFlash(

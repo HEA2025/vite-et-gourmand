@@ -1,67 +1,103 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Administration des menus - Vite & Gourmand{% endblock %}
+{% block title %}Gestion des menus - Vite & Gourmand{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container py-4">
 
-    <h1>Administration des menus</h1>
+    {#
+        L'en-tête reste lisible sur mobile :
+        le bouton passe sous le titre si l'espace devient insuffisant.
+    #}
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center
+                gap-3 mb-4">
 
-    <p>
-        <a href="{{ path('app_admin_menu_new') }}">
+        <h1 class="mb-0">Gestion des menus</h1>
+
+        <a class="btn btn-success"
+           href="{{ path('app_admin_menu_new') }}">
             Ajouter un menu
         </a>
-    </p>
+    </div>
 
     {% if menus is empty %}
-        <p>Aucun menu enregistré.</p>
+        <div class="alert alert-info" role="status">
+            Aucun menu enregistré.
+        </div>
     {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Titre</th>
-                    <th>Thème</th>
-                    <th>Régime</th>
-                    <th>Prix</th>
-                    <th>Stock</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                {% for menu in menus %}
+        {#
+            Le tableau reste utilisable sur les petits écrans.
+            Si nécessaire, seul le tableau peut défiler horizontalement.
+        #}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
                     <tr>
-                        <td>{{ menu.titre }}</td>
-                        <td>{{ menu.theme.nom }}</td>
-                        <td>{{ menu.regime.nom }}</td>
-                        <td>{{ menu.prixMinimum|number_format(2, ',', ' ') }} €</td>
-                        <td>{{ menu.stock }}</td>
-
-                        <td>
-                            <a href="{{ path('app_admin_menu_edit', {'id': menu.id}) }}">
-                                Modifier
-                            </a>
-
-                            <form
-                                method="post"
-                                action="{{ path('app_admin_menu_delete', {'id': menu.id}) }}"
-                                style="display: inline;"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="_token"
-                                    value="{{ csrf_token('delete_menu_' ~ menu.id) }}"
-                                >
-
-                                <button type="submit">
-                                    Supprimer
-                                </button>
-                            </form>
-                        </td>
+                        <th scope="col">Titre</th>
+                        <th scope="col">Thème</th>
+                        <th scope="col">Régime</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col">Stock</th>
+                        <th scope="col">Actions</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                    {% for menu in menus %}
+                        <tr>
+                            <td>{{ menu.titre }}</td>
+
+                            <td>{{ menu.theme.nom }}</td>
+
+                            <td>{{ menu.regime.nom }}</td>
+
+                            <td>
+                                {{ menu.prixMinimum|number_format(2, ',', ' ') }} €
+                            </td>
+
+                            {#
+                                Le stock représente le nombre de commandes
+                                encore disponibles pour ce menu.
+                            #}
+                            <td>{{ menu.stock }}</td>
+
+                            <td>
+                                {#
+                                    Les boutons peuvent revenir à la ligne
+                                    lorsque la largeur disponible diminue.
+                                #}
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-outline-success btn-sm"
+                                       href="{{ path('app_admin_menu_edit', {'id': menu.id}) }}">
+                                        Modifier
+                                    </a>
+
+                                    <form
+                                        method="post"
+                                        action="{{ path('app_admin_menu_delete', {'id': menu.id}) }}"
+                                        onsubmit="return confirm('Supprimer ce menu ?');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="_token"
+                                            value="{{ csrf_token('delete_menu_' ~ menu.id) }}"
+                                        >
+
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                type="submit">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     {% endif %}
 
 </div>

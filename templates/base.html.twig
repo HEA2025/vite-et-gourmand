@@ -54,7 +54,6 @@
 
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                    {# L'énoncé demande un accès à la page d'accueil. #}
                     <li class="nav-item">
                         <a class="nav-link"
                            href="{{ path('app_home') }}">
@@ -62,6 +61,7 @@
                         </a>
                     </li>
 
+                    {# Catalogue public des menus. #}
                     <li class="nav-item">
                         <a class="nav-link"
                            href="{{ path('app_menu_index') }}">
@@ -79,6 +79,25 @@
                     {% endif %}
 
                     {% if is_granted('ROLE_EMPLOYE') %}
+
+                        {#
+                            Les employés gèrent les menus et les plats.
+                            Les administrateurs héritent aussi de ces droits.
+                        #}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_admin_menu_index') }}">
+                                Gestion menus
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_admin_plat_index') }}">
+                                Gestion plats
+                            </a>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link"
                                href="{{ path('app_employe_commande_index') }}">
@@ -103,6 +122,7 @@
                     {% endif %}
 
                     {% if is_granted('ROLE_ADMINISTRATEUR') %}
+                        {# Fonctions réservées uniquement à l'administrateur. #}
                         <li class="nav-item">
                             <a class="nav-link"
                                href="{{ path('app_admin') }}">
@@ -111,7 +131,7 @@
                         </li>
                     {% endif %}
 
-                    {# La page Contact reste accessible à tous les utilisateurs. #}
+                    {# La page Contact reste accessible à tous. #}
                     <li class="nav-item">
                         <a class="nav-link"
                            href="{{ path('app_contact') }}">
