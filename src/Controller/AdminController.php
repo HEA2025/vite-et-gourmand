@@ -14,6 +14,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Mime\Address;
 
 /**
  * Gestion des comptes employés réservée à l'administrateur.
@@ -69,7 +70,7 @@ final class AdminController extends AbstractController
 
             // Informe l'employé de la création de son compte sans envoyer son mot de passe.
             $email = (new TemplatedEmail())
-                ->from('contact@vite-et-gourmand.fr')
+                ->from(new Address('hedi94220@gmail.com', 'Vite & Gourmand'))
                 ->to($employe->getEmail())
                 ->subject('Création de votre compte Vite & Gourmand')
                 ->htmlTemplate('emails/creation_employe.html.twig')

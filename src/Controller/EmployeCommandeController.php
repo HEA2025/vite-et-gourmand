@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Address;
 
 #[Route('/employe/commandes')]
 class EmployeCommandeController extends AbstractController
@@ -355,7 +356,7 @@ class EmployeCommandeController extends AbstractController
         // Le client est averti du délai de restitution du matériel.
         if ($nouveauStatut === 'en attente du retour de matériel') {
             $email = (new Email())
-                ->from('no-reply@vite-et-gourmand.fr')
+                ->from(new Address('hedi94220@gmail.com', 'Vite & Gourmand'))
                 ->to($commande->getUtilisateur()->getEmail())
                 ->subject('Vite & Gourmand - Retour du matériel')
                 ->text(
@@ -371,7 +372,7 @@ class EmployeCommandeController extends AbstractController
         // Une commande terminée permet ensuite au client de donner son avis.
         if ($nouveauStatut === 'terminée') {
             $email = (new Email())
-                ->from('no-reply@vite-et-gourmand.fr')
+                ->from(new Address('hedi94220@gmail.com', 'Vite & Gourmand'))
                 ->to($commande->getUtilisateur()->getEmail())
                 ->subject('Vite & Gourmand - Donnez votre avis')
                 ->text(

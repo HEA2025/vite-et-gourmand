@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Address;
 
 class ContactController extends AbstractController
 {
@@ -26,7 +27,7 @@ class ContactController extends AbstractController
             // L'adresse du visiteur est placée en Reply-To :
             // l'entreprise peut répondre directement sans usurper son adresse.
             $email = (new Email())
-                ->from('noreply@vite-et-gourmand.fr')
+                ->from(new Address('hedi94220@gmail.com', 'Vite & Gourmand'))
                 ->to('jose@vite-et-gourmand.fr')
                 ->replyTo($donnees['email'])
                 ->subject('Contact Vite & Gourmand - '.$donnees['titre'])

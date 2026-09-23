@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mime\Address;
 
 #[Route('/commande')]
 class CommandeController extends AbstractController
@@ -107,7 +108,7 @@ class CommandeController extends AbstractController
 
             // Envoie une confirmation après l'enregistrement de la commande.
             $email = (new Email())
-                ->from('no-reply@vite-et-gourmand.fr')
+                ->from(new Address('hedi94220@gmail.com', 'Vite & Gourmand'))
                 ->to($utilisateur->getEmail())
                 ->subject('Vite & Gourmand - Confirmation de commande')
                 ->text(

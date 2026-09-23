@@ -30,8 +30,10 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = $form->get('plainPassword')->getData();
 
+            // Un compte créé depuis l'inscription publique est toujours un client.
             $user->setRoles(['ROLE_USER']);
 
+            // Le mot de passe est hashé avant son enregistrement en base.
             $user->setPassword(
                 $userPasswordHasher->hashPassword($user, $plainPassword)
             );
@@ -39,8 +41,9 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            // Envoie automatiquement l'email de bienvenue demandé par l'ECF.
             $email = (new TemplatedEmail())
-                ->from('contact@vite-et-gourmand.fr')
+                ->from('hedi94220@gmail.com')
                 ->to($user->getEmail())
                 ->subject('Bienvenue chez Vite & Gourmand')
                 ->htmlTemplate('emails/bienvenue.html.twig')
@@ -49,6 +52,12 @@ class RegistrationController extends AbstractController
                 ]);
 
             $mailer->send($email);
+
+            // Informe l'utilisateur que son inscription est terminée.
+            $this->addFlash(
+                'success',
+                'Votre compte a été créé. Un email de bienvenue vous a été envoyé.'
+            );
 
             return $this->redirectToRoute('app_login');
         }
