@@ -3,10 +3,11 @@
 {% block title %}Modifier un menu - Vite & Gourmand{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
-    <h1>Modifier le menu</h1>
+    <h1 class="mb-4">Modifier le menu</h1>
 
+    {# Formulaire principal du menu. #}
     {{ form_start(form) }}
 
         {{ form_row(form.titre) }}
@@ -19,12 +20,135 @@
         {{ form_row(form.regime) }}
         {{ form_row(form.plats) }}
 
-        <button type="submit">Enregistrer les modifications</button>
+        <button type="submit" class="btn btn-primary mt-3">
+            Enregistrer les modifications
+        </button>
 
     {{ form_end(form) }}
 
+    <hr class="my-5">
+
+    <h2>Galerie d'images</h2>
+
     <p>
-        <a href="{{ path('app_admin_menu_index') }}">
+        Sélectionnez les images qui représentent ce menu.
+    </p>
+
+    {# Images actuellement associées au menu. #}
+    {% if menu.imageMenus is not empty %}
+        <div class="row g-3 mb-4">
+
+            {% for image in menu.imageMenus %}
+                <div class="col-12 col-sm-6 col-md-4">
+
+                    <div class="card h-100">
+
+                        <img
+                            src="{{ asset('images/menus/' ~ image.nomFichier) }}"
+                            class="card-img-top"
+                            alt="Illustration du menu {{ menu.titre }}"
+                            style="height: 200px; object-fit: cover;"
+                        >
+
+                        <div class="card-body">
+
+                            <p class="small">
+                                {{ image.nomFichier }}
+                            </p>
+
+                            {# Suppression protégée par CSRF. #}
+                            <form
+                                method="post"
+                                action="{{ path('app_admin_menu_image_delete', {
+                                    id: menu.id,
+                                    imageId: image.id
+                                }) }}"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="_token"
+                                    value="{{ csrf_token('delete_image_menu_' ~ image.id) }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-danger btn-sm"
+                                >
+                                    Retirer cette image
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            Aucune image n'est actuellement associée à ce menu.
+        </div>
+    {% endif %}
+
+    <h3 class="h5">Ajouter une image</h3>
+
+    {% if imagesDisponibles is not empty %}
+
+        <form
+            method="post"
+            action="{{ path('app_admin_menu_image_add', {
+                id: menu.id
+            }) }}"
+            class="mb-4"
+        >
+
+            <input
+                type="hidden"
+                name="_token"
+                value="{{ csrf_token('add_image_menu_' ~ menu.id) }}"
+            >
+
+            <div class="mb-3">
+                <label for="nom_fichier" class="form-label">
+                    Image disponible
+                </label>
+
+                <select
+                    id="nom_fichier"
+                    name="nom_fichier"
+                    class="form-select"
+                    required
+                >
+                    <option value="">
+                        Choisir une image
+                    </option>
+
+                    {% for nomFichier in imagesDisponibles %}
+                        <option value="{{ nomFichier }}">
+                            {{ nomFichier }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                Ajouter à la galerie
+            </button>
+
+        </form>
+
+    {% else %}
+        <div class="alert alert-info">
+            Aucune image n'est disponible dans le dossier du projet.
+        </div>
+    {% endif %}
+
+    <p class="mt-4">
+        <a
+            href="{{ path('app_admin_menu_index') }}"
+            class="btn btn-outline-secondary"
+        >
             Retour à la liste des menus
         </a>
     </p>
