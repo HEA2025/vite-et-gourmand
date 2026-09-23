@@ -199,7 +199,7 @@ final class AdminMenuController extends AbstractController
 
         /*
          * On supprime seulement l'association en base.
-         * Le fichier reste dans public/images/menus pour pouvoir être réutilisé.
+         * Le fichier reste dans public/images/menus pour être réutilisé.
          */
         $entityManager->remove($image);
         $entityManager->flush();
@@ -225,6 +225,27 @@ final class AdminMenuController extends AbstractController
             (string) $request->request->get('_token')
         )) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        /*
+         * Une commande doit conserver le menu auquel elle était liée.
+         * On interdit donc la suppression d'un menu déjà commandé.
+         */
+        if (!$menu->getCommandes()->isEmpty()) {
+            $this->addFlash(
+                'danger',
+                'Ce menu ne peut pas être supprimé car il est lié à une ou plusieurs commandes.'
+            );
+
+            return $this->redirectToRoute('app_admin_menu_index');
+        }
+
+        /*
+         * Les images possèdent une clé étrangère obligatoire vers le menu.
+         * On supprime d'abord leurs enregistrements avant de supprimer le menu.
+         */
+        foreach ($menu->getImageMenus()->toArray() as $image) {
+            $entityManager->remove($image);
         }
 
         $entityManager->remove($menu);
