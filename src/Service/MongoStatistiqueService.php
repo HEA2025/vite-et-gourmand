@@ -3,9 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Commande;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
 use MongoDB\Collection;
-use MongoDB\BSON\UTCDateTime;
 
 class MongoStatistiqueService
 {
@@ -13,8 +13,12 @@ class MongoStatistiqueService
 
     public function __construct()
     {
-        // Utilise la configuration d'environnement si elle existe.
-        $mongoUrl = $_ENV['MONGODB_URL'] ?? 'mongodb://127.0.0.1:27017';
+        // Récupère d'abord la variable système, notamment utilisée en production sur Railway.
+        // Si elle n'existe pas, MongoDB local reste utilisé pour le développement.
+        $mongoUrl = getenv('MONGODB_URL')
+            ?: ($_SERVER['MONGODB_URL']
+                ?? $_ENV['MONGODB_URL']
+                ?? 'mongodb://127.0.0.1:27017');
 
         $client = new Client($mongoUrl);
 
