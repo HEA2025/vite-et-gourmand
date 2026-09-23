@@ -76,6 +76,14 @@
                                 Mes commandes
                             </a>
                         </li>
+
+                        {# L'utilisateur connecté peut modifier ses informations personnelles. #}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{{ path('app_profil_edit') }}">
+                                Mon profil
+                            </a>
+                        </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_EMPLOYE') %}
@@ -133,7 +141,7 @@
                         {# Les statistiques MongoDB sont réservées à l'administrateur. #}
                         <li class="nav-item">
                             <a class="nav-link"
-                               href="/admin/statistiques">
+                               href="{{ path('app_admin_statistiques') }}">
                                 Statistiques
                             </a>
                         </li>

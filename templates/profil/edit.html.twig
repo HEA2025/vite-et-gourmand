@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil - Vite & Gourmand{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+
+    <h1 class="mb-4">Mes informations personnelles</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+
+            {# Formulaire Symfony avec protection CSRF automatique. #}
+            {{ form_start(form) }}
+
+                {{ form_row(form.nom) }}
+                {{ form_row(form.prenom) }}
+                {{ form_row(form.telephone) }}
+                {{ form_row(form.adresse) }}
+                {{ form_row(form.email) }}
+
+                <button type="submit" class="btn btn-success mt-3">
+                    Enregistrer mes modifications
+                </button>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
