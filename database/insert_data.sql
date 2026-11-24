@@ -1,177 +1,223 @@
--- MySQL dump 10.13  Distrib 8.0.39, for Win64 (x86_64)
+-- =====================================================================
+--  VITE & GOURMAND - Jeu de données de démonstration
+--  À exécuter APRÈS create_database.sql
+--  Auteur : Hedi EL AOUINI
 --
--- Host: localhost    Database: vite_et_gourmand
--- ------------------------------------------------------
--- Server version	8.0.39
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
+--  Règles de calcul utilisées pour les commandes :
+--    - prix_menu  = (prix_minimum / nombre_minimum_personnes) x nombre_personnes
+--    - réduction  = 10 % du prix_menu si nombre_personnes >= minimum + 5
+--    - livraison  = 0 € à Bordeaux, sinon 5 € + 0,59 € par kilomètre
+--    - prix_total = prix_menu - réduction + frais_livraison
 --
--- Dumping data for table `allergene`
---
+--  Comptes de test (mot de passe hashé en bcrypt, jamais en clair) :
+--    jose@vite-et-gourmand.fr       -> administrateur
+--    employe@vite-et-gourmand.fr    -> employé (actif)
+--    jean@vite-et-gourmand.fr       -> client
+--    Steve@gmail.com                -> client
+-- =====================================================================
 
-LOCK TABLES `allergene` WRITE;
-/*!40000 ALTER TABLE `allergene` DISABLE KEYS */;
-INSERT INTO `allergene` VALUES (17,'Gluten'),(18,'Lait'),(19,'Œufs'),(20,'Fruits à coque');
-/*!40000 ALTER TABLE `allergene` ENABLE KEYS */;
-UNLOCK TABLES;
+USE vite_et_gourmand;
+SET NAMES utf8mb4;
 
---
--- Dumping data for table `avis`
---
+-- ---------------------------------------------------------------------
+-- 1. Utilisateurs
+-- ---------------------------------------------------------------------
+INSERT INTO utilisateur (id, email, roles, password, nom, prenom, telephone, adresse, actif) VALUES
+(1, 'jose@vite-et-gourmand.fr',         '["ROLE_ADMINISTRATEUR"]',
+    '$2y$13$q/2/sYf7XTf/ISkxTOshF.NNHq1RUj/qhB5R9ByrZobqhELlHl2eS',
+    'José', 'José', '0600000000', 'Adresse à compléter', 1),
+(2, 'jean@vite-et-gourmand.fr',         '["ROLE_USER"]',
+    '$2y$13$7B/8L5.hkn1eTn5W8hhFw.g3ZzEvE.6o/ABegDeqA8bS0JMofcWuq',
+    'Dupont', 'Jean', '0612345678', '10 rue Sainte-Catherine, 33000 Bordeaux', 1),
+(3, 'employe.test@vite-et-gourmand.fr', '["ROLE_EMPLOYE"]',
+    '$2y$13$tO3RFa/5VKzMo1Mvl35roufM7Cnvg1arPW8AZHwnaEdNAaIenG06i',
+    NULL, NULL, NULL, NULL, 0),   -- compte désactivé par l'administrateur
+(4, 'employe@vite-et-gourmand.fr',      '["ROLE_EMPLOYE"]',
+    '$2y$13$cd9qvwtnUXbosgPyd4U68O4jeTO.Ayn/YZfNCqD34akx9Y6WfUr9.',
+    NULL, NULL, NULL, NULL, 1),
+(5, 'Steve@gmail.com',                  '["ROLE_USER"]',
+    '$2y$13$gmLDVQ.m7jcBHQgJzTejCetj5whgewWqkQI8LH.skHBYML1.n8hc6',
+    'Migo', 'Steve', '0612131415', '1 rue Louis de Jabrun, 33000 Bordeaux', 1);
 
-LOCK TABLES `avis` WRITE;
-/*!40000 ALTER TABLE `avis` DISABLE KEYS */;
-INSERT INTO `avis` VALUES (1,5,'delicieux','validé','2026-09-19 15:41:37',4),(2,5,'Excellent','validé','2026-09-21 13:32:37',13);
-/*!40000 ALTER TABLE `avis` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `commande`
---
+-- ---------------------------------------------------------------------
+-- 2. Tables de référence
+-- ---------------------------------------------------------------------
+INSERT INTO theme (id, nom) VALUES
+(1, 'Classique'),
+(2, 'Noël'),
+(3, 'Pâques'),
+(4, 'Événement');
 
-LOCK TABLES `commande` WRITE;
-/*!40000 ALTER TABLE `commande` DISABLE KEYS */;
-INSERT INTO `commande` VALUES (1,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-25','12:30:00',2,45.00,0.00,0.00,45.00,'2026-09-19 12:54:19',8,7,0,0,NULL,NULL,NULL),(2,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-25','12:30:00',4,45.00,0.00,0.00,45.00,'2026-09-19 12:54:42',8,7,0,1,'gsm','Modification demandée par le client','2026-09-19 15:27:04'),(3,'1 avenue de Paris, 33600 Pessac','2026-09-25','12:30:00',7,45.00,4.50,10.90,51.40,'2026-09-19 12:55:58',8,7,10,0,NULL,NULL,NULL),(4,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-27','12:30:00',2,45.00,0.00,0.00,45.00,'2026-09-19 13:18:37',8,7,0,0,NULL,NULL,NULL),(5,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-26','12:30:00',2,45.00,0.00,0.00,45.00,'2026-09-19 14:47:12',8,6,0,0,NULL,NULL,NULL),(6,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-26','12:30:00',7,45.00,4.50,0.00,40.50,'2026-09-19 14:47:35',8,6,0,0,NULL,NULL,NULL),(7,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-26','12:30:00',7,45.00,4.50,10.90,51.40,'2026-09-19 14:47:50',8,6,10,0,NULL,NULL,NULL),(8,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-28','14:30:00',8,45.00,4.50,0.00,40.50,'2026-09-19 16:04:54',8,7,0,0,NULL,NULL,NULL),(9,'1 avenue de Paris, 33600 Pessac','2026-09-22','14:00:00',4,35.00,0.00,10.90,45.90,'2026-09-20 18:49:30',9,6,10,0,NULL,NULL,NULL),(10,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-23','12:00:00',8,35.00,3.50,0.00,31.50,'2026-09-20 18:52:28',9,6,0,0,NULL,NULL,NULL),(11,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-22','11:30:00',4,70.00,0.00,0.00,70.00,'2026-09-20 19:18:04',9,6,0,0,NULL,NULL,NULL),(12,'1 avenue de Paris, 33600 Pessac','2026-09-25','20:00:00',8,140.00,14.00,10.90,136.90,'2026-09-20 19:20:10',9,6,10,0,NULL,NULL,NULL),(13,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-25','19:20:00',2,45.00,0.00,0.00,45.00,'2026-09-21 13:18:11',8,10,0,0,NULL,NULL,NULL),(14,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-22','14:00:00',3,52.50,0.00,0.00,52.50,'2026-09-22 11:49:57',9,10,0,0,NULL,NULL,NULL),(15,'10 rue Sainte-Catherine, 33000 Bordeaux','2026-09-22','14:00:00',3,52.50,0.00,0.00,52.50,'2026-09-22 11:54:33',9,10,0,0,'email','Erreur d\'adresse','2026-09-22 11:57:10');
-/*!40000 ALTER TABLE `commande` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO regime (id, nom) VALUES
+(1, 'Classique'),
+(2, 'Végétarien'),
+(3, 'Vegan');
 
---
--- Dumping data for table `doctrine_migration_versions`
---
+INSERT INTO allergene (id, nom) VALUES
+(1, 'Gluten'),
+(2, 'Lait'),
+(3, 'Œufs'),
+(4, 'Fruits à coque');
 
-LOCK TABLES `doctrine_migration_versions` WRITE;
-/*!40000 ALTER TABLE `doctrine_migration_versions` DISABLE KEYS */;
-INSERT INTO `doctrine_migration_versions` VALUES ('DoctrineMigrations\\Version20260915140711','2026-09-15 14:19:51',1693),('DoctrineMigrations\\Version20260916095242','2026-09-16 09:53:45',81),('DoctrineMigrations\\Version20260916203049','2026-09-16 20:36:10',20),('DoctrineMigrations\\Version20260917145143','2026-09-17 14:52:29',178),('DoctrineMigrations\\Version20260917160835','2026-09-17 16:09:24',181),('DoctrineMigrations\\Version20260917200517','2026-09-17 20:12:41',84),('DoctrineMigrations\\Version20260919123917','2026-09-19 12:39:35',59),('DoctrineMigrations\\Version20260919145735','2026-09-19 14:58:02',56);
-/*!40000 ALTER TABLE `doctrine_migration_versions` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO horaire (id, jour, heure_ouverture, heure_fermeture) VALUES
+(1, 'Lundi',    '09:00:00', '23:00:00'),
+(2, 'Mardi',    '09:30:00', '22:00:00'),
+(3, 'Mercredi', '10:00:00', '22:30:00'),
+(4, 'Jeudi',    '10:30:00', '23:00:00'),
+(5, 'Vendredi', '09:15:00', '22:40:00'),
+(6, 'Samedi',   '10:00:00', '23:59:00'),
+(7, 'Dimanche', '09:00:00', '16:00:00');
 
---
--- Dumping data for table `historique_statut_commande`
---
 
-LOCK TABLES `historique_statut_commande` WRITE;
-/*!40000 ALTER TABLE `historique_statut_commande` DISABLE KEYS */;
-INSERT INTO `historique_statut_commande` VALUES (1,'en attente','2026-09-19 13:18:37',4),(2,'acceptée','2026-09-19 13:38:42',4),(3,'en préparation','2026-09-19 13:40:05',4),(4,'en cours de livraison','2026-09-19 13:41:44',4),(5,'livrée','2026-09-19 13:42:20',4),(6,'terminée','2026-09-19 13:42:27',4),(7,'en attente','2026-09-19 14:47:12',5),(8,'en attente','2026-09-19 14:47:35',6),(9,'en attente','2026-09-19 14:47:50',7),(10,'acceptée','2026-09-19 15:27:49',2),(11,'en préparation','2026-09-19 15:27:59',2),(12,'en cours de livraison','2026-09-19 15:28:08',2),(13,'livrée','2026-09-19 15:28:33',2),(14,'acceptée','2026-09-19 15:28:53',2),(15,'en attente du retour de matériel','2026-09-19 15:29:07',2),(16,'terminée','2026-09-19 15:29:58',2),(17,'en attente','2026-09-19 16:04:55',8),(18,'annulée','2026-09-19 16:05:48',1),(19,'en attente','2026-09-20 18:49:31',9),(20,'en attente','2026-09-20 18:52:28',10),(21,'en attente','2026-09-20 19:18:04',11),(22,'en attente','2026-09-20 19:20:11',12),(23,'en attente','2026-09-21 13:18:11',13),(24,'acceptée','2026-09-21 13:21:21',13),(25,'acceptée','2026-09-21 13:22:00',12),(26,'acceptée','2026-09-21 13:22:19',11),(27,'acceptée','2026-09-21 13:22:47',10),(28,'acceptée','2026-09-21 13:23:00',9),(29,'acceptée','2026-09-21 13:23:13',8),(30,'acceptée','2026-09-21 13:23:22',7),(31,'en préparation','2026-09-21 13:23:50',4),(32,'acceptée','2026-09-21 13:24:06',3),(33,'en préparation','2026-09-21 13:24:23',5),(34,'en préparation','2026-09-21 13:24:41',3),(35,'en cours de livraison','2026-09-21 13:24:56',3),(36,'en cours de livraison','2026-09-21 13:25:08',5),(37,'en cours de livraison','2026-09-21 13:25:19',4),(38,'en cours de livraison','2026-09-21 13:25:33',10),(39,'en cours de livraison','2026-09-21 13:25:44',11),(40,'en cours de livraison','2026-09-21 13:26:00',9),(41,'livrée','2026-09-21 13:26:11',11),(42,'livrée','2026-09-21 13:26:23',10),(43,'livrée','2026-09-21 13:26:34',9),(44,'en cours de livraison','2026-09-21 13:27:02',13),(45,'livrée','2026-09-21 13:27:15',13),(46,'terminée','2026-09-21 13:27:35',13),(47,'en attente','2026-09-22 11:49:57',14),(48,'annulée','2026-09-22 11:52:07',14),(49,'en attente','2026-09-22 11:54:33',15),(50,'annulée','2026-09-22 11:57:10',15);
-/*!40000 ALTER TABLE `historique_statut_commande` ENABLE KEYS */;
-UNLOCK TABLES;
+-- ---------------------------------------------------------------------
+-- 3. Plats et allergènes
+-- ---------------------------------------------------------------------
+INSERT INTO plat (id, nom, description, type) VALUES
+(1, 'Salade gourmande',       'Salade fraîche aux légumes de saison.',                                        'entrée'),
+(2, 'Saumon rôti',            'Saumon rôti accompagné de légumes.',                                           'plat'),
+(3, 'Gratin de légumes',      'Gratin de légumes de saison.',                                                 'plat'),
+(4, 'Fondant au chocolat',    'Fondant au chocolat maison.',                                                  'dessert'),
+(5, 'Salade de fruits',       'Fruits frais de saison.',                                                      'dessert'),
+(6, 'Curry de pois chiches',  'Curry de pois chiches, lentilles corail et épinards au lait de coco, riz basmati.', 'plat'),
+(7, 'Salade méditerranéenne', 'Tomates, concombre, olives et herbes aromatiques.',                            'entrée'),
+(8, 'Soupe de fruits rouges', 'Fruits rouges infusés à la menthe et sorbet framboise maison.',                'dessert');
 
---
--- Dumping data for table `horaire`
---
+-- Gratin : lait / Fondant : gluten, lait, œufs
+INSERT INTO plat_allergene (plat_id, allergene_id) VALUES
+(3, 2),
+(4, 1),
+(4, 2),
+(4, 3);
 
-LOCK TABLES `horaire` WRITE;
-/*!40000 ALTER TABLE `horaire` DISABLE KEYS */;
-INSERT INTO `horaire` VALUES (1,'Lundi','09:00:00','23:00:00'),(2,'Mardi','09:30:00','22:00:00'),(3,'Mercredi','10:00:00','22:30:00'),(4,'Jeudi','10:30:00','23:00:00'),(5,'Vendredi','09:15:00','22:40:00'),(6,'Samedi','10:00:00','00:00:00'),(7,'Dimanche','09:00:00','16:00:00');
-/*!40000 ALTER TABLE `horaire` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `image_menu`
---
+-- ---------------------------------------------------------------------
+-- 4. Menus, composition et images
+-- ---------------------------------------------------------------------
+INSERT INTO menu (id, titre, description, nombre_minimum_personnes, prix_minimum, conditions, stock, theme_id, regime_id) VALUES
+(1, 'Menu Gourmand',      'Un menu gourmand et traditionnel.',
+    2, 45.00, 'Commande au minimum 48 heures à l''avance.', 10, 1, 1),
+(2, 'Menu Végétarien',    'Un menu sans viande à base de légumes de saison.',
+    2, 35.00, 'Commande au minimum 48 heures à l''avance.',  8, 1, 2),
+(3, 'Menu Vegan',         'Un repas composé exclusivement d''aliments d''origine végétale.',
+    2, 35.00, 'Commande au minimum 48 heures à l''avance.',  4, 1, 3),
+(4, 'Menu Méditerranéen', 'Un menu frais et gourmand aux saveurs méditerranéennes.',
+    4, 80.00, 'Commande au minimum 12 heures à l''avance.',  4, 1, 1);
 
-LOCK TABLES `image_menu` WRITE;
-/*!40000 ALTER TABLE `image_menu` DISABLE KEYS */;
-INSERT INTO `image_menu` VALUES (5,'menu-gourmand.png',8),(6,'plat-gourmand.png',8),(7,'dessert-chocolat.png',8),(8,'menu-vegetarien.png',9);
-/*!40000 ALTER TABLE `image_menu` ENABLE KEYS */;
-UNLOCK TABLES;
+-- Chaque menu = 1 entrée + 1 plat + 1 dessert
+INSERT INTO menu_plat (menu_id, plat_id) VALUES
+(1, 1), (1, 2), (1, 4),   -- Gourmand      : salade gourmande, saumon, fondant
+(2, 1), (2, 3), (2, 5),   -- Végétarien    : salade gourmande, gratin, salade de fruits
+(3, 1), (3, 6), (3, 8),   -- Vegan         : salade gourmande, curry, soupe de fruits rouges
+(4, 7), (4, 2), (4, 8);   -- Méditerranéen : salade méditerranéenne, saumon, soupe de fruits rouges
 
---
--- Dumping data for table `menu`
---
+INSERT INTO image_menu (id, nom_fichier, menu_id) VALUES
+(1, 'menu-gourmand.png',   1),
+(2, 'plat-gourmand.png',   1),
+(3, 'dessert-chocolat.png', 1),
+(4, 'menu-vegetarien.png', 2);
 
-LOCK TABLES `menu` WRITE;
-/*!40000 ALTER TABLE `menu` DISABLE KEYS */;
-INSERT INTO `menu` VALUES (8,'Menu Gourmand','Un menu gourmand et traditionnel.',2,45.00,'Commande au minimum 48 heures à l’avance.',10,17,13),(9,'Menu Végétarien','Un menu sans viande à base de légumes de saison.',2,35.00,'Commande au minimum 48 heures à l’avance.',8,17,14),(10,'Menu Vegan','un repas composé exclusivement d\'aliments d\'origine végétale.',2,35.00,'Conditions du menu\nCommande au minimum 48 heures à l’avance.',4,17,13),(12,'Menu Méditerranéen','Un menu frais et gourmand aux saveurs méditerranéennes.',4,80.00,'Conditions du menu\nCommande au minimum 12 heures à l’avance.',4,17,13);
-/*!40000 ALTER TABLE `menu` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `menu_plat`
---
+-- ---------------------------------------------------------------------
+-- 5. Commandes (un exemple pour chaque cas métier)
+-- ---------------------------------------------------------------------
+INSERT INTO commande (id, adresse_prestation, date_prestation, heure_livraison, nombre_personnes,
+                      prix_menu, reduction, frais_livraison, prix_total, distance_livraison,
+                      materiel_prete, moyen_contact_employe, motif_intervention_employe,
+                      date_contact_employe, date_creation, menu_id, utilisateur_id) VALUES
+-- 1. Cas simple, Bordeaux, commande terminée puis notée
+(1, '10 rue Sainte-Catherine, 33000 Bordeaux', '2026-09-27', '12:30:00', 2,
+    45.00,  0.00,  0.00,  45.00,  0, 0, NULL, NULL, NULL, '2026-09-19 13:18:37', 1, 2),
+-- 2. Hors Bordeaux (10 km) + réduction : 7 pers. >= 2 + 5
+--    157,50 - 15,75 + (5 + 0,59 x 10) = 152,65
+(2, '1 avenue de Paris, 33600 Pessac',          '2026-09-25', '12:30:00', 7,
+    157.50, 15.75, 10.90, 152.65, 10, 0, NULL, NULL, NULL, '2026-09-19 12:55:58', 1, 2),
+-- 3. Deuxième client, commande terminée puis notée
+(3, '10 rue Sainte-Catherine, 33000 Bordeaux', '2026-09-25', '19:20:00', 2,
+    45.00,  0.00,  0.00,  45.00,  0, 0, NULL, NULL, NULL, '2026-09-21 13:18:11', 1, 5),
+-- 4. Matériel prêté : la commande attend le retour du matériel
+(4, '10 rue Sainte-Catherine, 33000 Bordeaux', '2026-09-22', '11:30:00', 4,
+    70.00,  0.00,  0.00,  70.00,  0, 1, NULL, NULL, NULL, '2026-09-20 19:18:04', 2, 2),
+-- 5. Annulée par un employé après contact du client par e-mail
+(5, '10 rue Sainte-Catherine, 33000 Bordeaux', '2026-09-22', '14:00:00', 3,
+    52.50,  0.00,  0.00,  52.50,  0, 0, 'email', 'Erreur d''adresse', '2026-09-22 11:57:10',
+    '2026-09-22 11:54:33', 2, 5),
+-- 6. Nouvelle commande en attente, hors Bordeaux + réduction : 10 pers. >= 4 + 5
+--    200,00 - 20,00 + 10,90 = 190,90
+(6, '1 avenue de Paris, 33600 Pessac',          '2026-12-05', '20:00:00', 10,
+    200.00, 20.00, 10.90, 190.90, 10, 0, NULL, NULL, NULL, '2026-11-20 18:49:30', 4, 2);
 
-LOCK TABLES `menu_plat` WRITE;
-/*!40000 ALTER TABLE `menu_plat` DISABLE KEYS */;
-INSERT INTO `menu_plat` VALUES (8,17),(8,18),(8,20),(9,17),(9,19),(9,21),(10,17),(10,23),(10,29),(12,18),(12,25),(12,29);
-/*!40000 ALTER TABLE `menu_plat` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `plat`
---
+-- ---------------------------------------------------------------------
+-- 6. Historique des statuts (suivi de commande)
+-- ---------------------------------------------------------------------
+INSERT INTO historique_statut_commande (statut, date_modification, commande_id) VALUES
+-- Commande 1 : parcours complet
+('en attente',            '2026-09-19 13:18:37', 1),
+('acceptée',              '2026-09-19 13:38:42', 1),
+('en préparation',        '2026-09-27 09:40:05', 1),
+('en cours de livraison', '2026-09-27 11:41:44', 1),
+('livrée',                '2026-09-27 12:25:20', 1),
+('terminée',              '2026-09-27 12:30:27', 1),
+-- Commande 2 : acceptée
+('en attente',            '2026-09-19 12:55:58', 2),
+('acceptée',              '2026-09-21 13:24:06', 2),
+-- Commande 3 : parcours complet
+('en attente',            '2026-09-21 13:18:11', 3),
+('acceptée',              '2026-09-21 13:21:21', 3),
+('en préparation',        '2026-09-25 16:00:00', 3),
+('en cours de livraison', '2026-09-25 18:50:00', 3),
+('livrée',                '2026-09-25 19:15:00', 3),
+('terminée',              '2026-09-25 19:20:00', 3),
+-- Commande 4 : matériel à rendre
+('en attente',            '2026-09-20 19:18:04', 4),
+('acceptée',              '2026-09-21 13:22:19', 4),
+('en préparation',        '2026-09-22 09:00:00', 4),
+('en cours de livraison', '2026-09-22 11:00:00', 4),
+('livrée',                '2026-09-22 11:30:00', 4),
+('en attente du retour de matériel', '2026-09-22 11:35:00', 4),
+-- Commande 5 : annulée
+('en attente',            '2026-09-22 11:54:33', 5),
+('annulée',               '2026-09-22 11:57:10', 5),
+-- Commande 6 : vient d'être passée
+('en attente',            '2026-11-20 18:49:30', 6);
 
-LOCK TABLES `plat` WRITE;
-/*!40000 ALTER TABLE `plat` DISABLE KEYS */;
-INSERT INTO `plat` VALUES (17,'Salade gourmande','Salade fraîche aux légumes de saison.','entrée'),(18,'Saumon rôti','Saumon rôti accompagné de légumes.','plat'),(19,'Gratin de légumes','Gratin de légumes de saison.','plat'),(20,'Fondant au chocolat','Fondant au chocolat maison.','dessert'),(21,'Salade de fruits','Fruits frais de saison.','dessert'),(23,'Curry de poid chiches','Curry onctueux de pois chiches, lentilles corail et jeunes épinards au lait de coco infusé aux épices douces, servi avec son riz basmati.','plat'),(25,'Salade méditerranéenne','Salade fraîche composée de tomates, concombre, olives et herbes aromatiques.','entrée'),(29,'Soupe de fruits rouges','Fruits rouges fraîchement infusée à la menthe, surmontée d\'un sorbet à la framboise maison.','dessert');
-/*!40000 ALTER TABLE `plat` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `plat_allergene`
---
+-- ---------------------------------------------------------------------
+-- 7. Avis (uniquement sur des commandes terminées)
+-- ---------------------------------------------------------------------
+INSERT INTO avis (id, note, commentaire, statut, date_creation, commande_id) VALUES
+(1, 5, 'Délicieux, livré à l''heure.', 'validé', '2026-09-27 15:41:37', 1),
+(2, 5, 'Excellent, je recommande.',    'validé', '2026-09-25 21:32:37', 3);
 
-LOCK TABLES `plat_allergene` WRITE;
-/*!40000 ALTER TABLE `plat_allergene` DISABLE KEYS */;
-INSERT INTO `plat_allergene` VALUES (19,18),(20,17),(20,18),(20,19);
-/*!40000 ALTER TABLE `plat_allergene` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping data for table `regime`
---
+-- ---------------------------------------------------------------------
+-- 8. Requêtes de vérification
+-- ---------------------------------------------------------------------
 
-LOCK TABLES `regime` WRITE;
-/*!40000 ALTER TABLE `regime` DISABLE KEYS */;
-INSERT INTO `regime` VALUES (13,'Classique'),(14,'Végétarien'),(15,'Vegan');
-/*!40000 ALTER TABLE `regime` ENABLE KEYS */;
-UNLOCK TABLES;
+-- Menus avec leur thème et leur régime (page "Nos menus")
+SELECT m.titre, t.nom AS theme, r.nom AS regime, m.prix_minimum, m.nombre_minimum_personnes
+FROM menu m
+JOIN theme  t ON t.id = m.theme_id
+JOIN regime r ON r.id = m.regime_id
+ORDER BY m.prix_minimum;
 
---
--- Dumping data for table `reset_password_request`
---
+-- Allergènes de chaque menu
+SELECT m.titre, GROUP_CONCAT(DISTINCT a.nom ORDER BY a.nom SEPARATOR ', ') AS allergenes
+FROM menu m
+JOIN menu_plat      mp ON mp.menu_id = m.id
+LEFT JOIN plat_allergene pa ON pa.plat_id = mp.plat_id
+LEFT JOIN allergene      a  ON a.id = pa.allergene_id
+GROUP BY m.id, m.titre;
 
-LOCK TABLES `reset_password_request` WRITE;
-/*!40000 ALTER TABLE `reset_password_request` DISABLE KEYS */;
-INSERT INTO `reset_password_request` VALUES (1,'Uvkanrxxb381LyaKTNzP','8s+OP6n7Rgq4k8bc0l90E4PC8aC2wGdj1DbqY5N+jqk=','2026-09-21 10:06:50','2026-09-21 11:06:50',7);
-/*!40000 ALTER TABLE `reset_password_request` ENABLE KEYS */;
-UNLOCK TABLES;
+-- Contrôle du calcul : doit renvoyer 0 ligne
+SELECT id, prix_total, prix_menu - reduction + frais_livraison AS total_recalcule
+FROM commande
+WHERE prix_total <> prix_menu - reduction + frais_livraison;
 
---
--- Dumping data for table `theme`
---
-
-LOCK TABLES `theme` WRITE;
-/*!40000 ALTER TABLE `theme` DISABLE KEYS */;
-INSERT INTO `theme` VALUES (17,'Classique'),(18,'Noël'),(19,'Pâques'),(20,'Événement');
-/*!40000 ALTER TABLE `theme` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `utilisateur`
---
-
-LOCK TABLES `utilisateur` WRITE;
-/*!40000 ALTER TABLE `utilisateur` DISABLE KEYS */;
-INSERT INTO `utilisateur` VALUES (6,'jose@vite-et-gourmand.fr','[\"ROLE_ADMINISTRATEUR\"]','$2y$13$q/2/sYf7XTf/ISkxTOshF.NNHq1RUj/qhB5R9ByrZobqhELlHl2eS','José','José','0600000000','Adresse à compléter',1),(7,'jean@vite-et-gourmand.fr','[\"ROLE_USER\"]','$2y$13$7B/8L5.hkn1eTn5W8hhFw.g3ZzEvE.6o/ABegDeqA8bS0JMofcWuq','Dupont','Jean','0612345678','10 rue Sainte-Catherine, 33000 Bordeaux',1),(8,'employe.test@vite-et-gourmand.fr','[\"ROLE_EMPLOYE\"]','$2y$13$tO3RFa/5VKzMo1Mvl35roufM7Cnvg1arPW8AZHwnaEdNAaIenG06i',NULL,NULL,NULL,NULL,0),(9,'employe@vite-et-gourmand.fr','[\"ROLE_EMPLOYE\"]','$2y$13$cd9qvwtnUXbosgPyd4U68O4jeTO.Ayn/YZfNCqD34akx9Y6WfUr9.',NULL,NULL,NULL,NULL,1),(10,'Steve@gmail.com','[\"ROLE_USER\"]','$2y$13$gmLDVQ.m7jcBHQgJzTejCetj5whgewWqkQI8LH.skHBYML1.n8hc6','Migo','Steve','0612131415','1 rue Louis de Jabrun, 33000 Bordeaux',1);
-/*!40000 ALTER TABLE `utilisateur` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-09-23 21:01:25
+-- Chiffre d'affaires par menu (commandes non annulées)
+SELECT m.titre, COUNT(c.id) AS nb_commandes, SUM(c.prix_total) AS chiffre_affaires
+FROM commande c
+JOIN menu m ON m.id = c.menu_id
+WHERE c.id NOT IN (SELECT commande_id FROM historique_statut_commande WHERE statut = 'annulée')
+GROUP BY m.id, m.titre;

@@ -94,7 +94,10 @@
         </div>
 
         <div class="col-lg-5">
-            <div class="card">
+            <div class="card"
+                 id="detail-prix"
+                 data-prix-minimum="{{ menu.prixMinimum }}"
+                 data-nombre-minimum="{{ menu.nombreMinimumPersonnes }}">
                 <div class="card-body">
 
                     <h2 class="h5 mb-3">
@@ -143,71 +146,9 @@
     </div>
 
 </div>
+{% endblock %}
 
-<script>
-    // Le prix minimum correspond au nombre minimum de personnes.
-    const prixMinimum = {{ menu.prixMinimum }};
-    const nombreMinimum = {{ menu.nombreMinimumPersonnes }};
-    const prixParPersonne = prixMinimum / nombreMinimum;
-
-    const personnesInput = document.getElementById(
-        'commande_nombrePersonnes'
-    );
-
-    const distanceInput = document.getElementById(
-        'commande_distanceLivraison'
-    );
-
-    /**
-     * Met à jour l'aperçu du prix selon le nombre de personnes.
-     * Le serveur refait ensuite le même calcul avant l'enregistrement.
-     */
-    function mettreAJourPrix() {
-        const nombrePersonnes = Math.max(
-            0,
-            Number(personnesInput?.value || 0)
-        );
-
-        const distance = Math.max(
-            0,
-            Number(distanceInput?.value || 0)
-        );
-
-        // Adapte le prix du menu au nombre réel de personnes.
-        const prixMenu = prixParPersonne * nombrePersonnes;
-
-        let reduction = 0;
-        let livraison = 0;
-
-        // Réduction de 10 % à partir de 5 personnes au-dessus du minimum.
-        if (nombrePersonnes >= nombreMinimum + 5) {
-            reduction = prixMenu * 0.10;
-        }
-
-        // Bordeaux est gratuit. Hors Bordeaux : 5 € + 0,59 €/km.
-        if (distance > 0) {
-            livraison = 5 + (0.59 * distance);
-        }
-
-        const total = prixMenu - reduction + livraison;
-
-        document.getElementById('prix-menu').textContent =
-            prixMenu.toFixed(2).replace('.', ',') + ' €';
-
-        document.getElementById('reduction-prix').textContent =
-            reduction.toFixed(2).replace('.', ',') + ' €';
-
-        document.getElementById('frais-livraison').textContent =
-            livraison.toFixed(2).replace('.', ',') + ' €';
-
-        document.getElementById('prix-total').textContent =
-            total.toFixed(2).replace('.', ',') + ' €';
-    }
-
-    personnesInput?.addEventListener('input', mettreAJourPrix);
-    distanceInput?.addEventListener('input', mettreAJourPrix);
-
-    // Affiche le bon montant dès l'ouverture de la page.
-    mettreAJourPrix();
-</script>
+{% block javascripts %}
+    {# Aperçu du prix en direct : le code est dans public/js/commande.js #}
+    <script src="{{ asset('js/commande.js') }}" defer></script>
 {% endblock %}
